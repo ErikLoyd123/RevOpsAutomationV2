@@ -1,0 +1,165 @@
+# Multi-stage Dockerfile for RevOps Data Processing Services
+# Optimized for database infrastructure phase with lightweight runtime
+# Supports ingestion, transformation, and validation services
+
+# =============================================================================
+# Stage 1: Dependencies and Build Environment
+# =============================================================================
+FROM python:3.10-slim AS builder
+
+# Set environment variables for build
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies required for building Python packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip and install wheel
+RUN pip install --upgrade pip setuptools wheel
+
+# Copy and install Python dependencies
+COPY backend/requirements.txt /tmp/backend-requirements.txt
+COPY backend/services/07-embeddings/requirements.txt /tmp/embeddings-requirements.txt
+
+# Install backend dependencies
+RUN pip install -r /tmp/backend-requirements.txt
+
+# Install additional data processing dependencies
+RUN pip install \
+    pandas==2.1.4 \
+    numpy==1.24.4 \
+    requests==2.31.0 \
+    aiohttp==3.9.1 \
+    asyncpg==0.29.0 \
+    schedule==1.2.0
+
+# =============================================================================
+# Stage 2: Runtime Environment
+# =============================================================================
+FROM python:3.10-slim AS runtime
+
+# Set environment variables for runtime
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    curl \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder stage
+COPY --from=builder /opt/venv /opt/venv
+
+# Create application directory structure
+WORKDIR /app
+RUN mkdir -p \
+    /app/scripts \
+    /app/core \
+    /app/data \
+    /app/logs \
+    /app/config
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Copy application code (to be mounted at runtime for development)
+# Note: In production, these would be copied instead of mounted
+# COPY scripts/ /app/scripts/
+# COPY backend/core/ /app/core/
+
+# Set ownership and permissions
+RUN chown -R appuser:appuser /app
+RUN chmod -R 755 /app
+
+# Install health check dependencies
+RUN pip install --no-cache-dir requests
+
+# Create health check script
+RUN echo '#!/usr/bin/env python3\n\
+import sys\n\
+import requests\n\
+import os\n\
+\n\
+def check_health():\n\
+    try:\n\
+        port = os.environ.get("SERVICE_PORT", "8001")\n\
+        response = requests.get(f"http://localhost:{port}/health", timeout=5)\n\
+        return response.status_code == 200\n\
+    except Exception as e:\n\
+        print(f"Health check failed: {e}")\n\
+        return False\n\
+\n\
+if __name__ == "__main__":\n\
+    if check_health():\n\
+        print("Service is healthy")\n\
+        sys.exit(0)\n\
+    else:\n\
+        print("Service is unhealthy")\n\
+        sys.exit(1)\n' > /app/health_check.py
+
+RUN chmod +x /app/health_check.py
+
+# Switch to non-root user
+USER appuser
+
+# Set working directory
+WORKDIR /app
+
+# Default environment variables (can be overridden)
+ENV SERVICE_PORT=8001
+ENV APP_LOG_LEVEL=INFO
+ENV PYTHONPATH=/app:/app/core:/app/scripts
+
+# Health check configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+    CMD python /app/health_check.py
+
+# =============================================================================
+# Container Labels and Metadata
+# =============================================================================
+LABEL maintainer="RevOps Automation Platform"
+LABEL version="1.0.0"
+LABEL description="Data processing services for database infrastructure phase"
+LABEL phase="database-infrastructure"
+LABEL services="ingestion,transformation,validation"
+
+# Service configuration
+LABEL service.type="data-processing"
+LABEL service.protocol="http"
+LABEL service.framework="python"
+
+# Dependencies
+LABEL dependencies.database="postgresql+pgvector"
+LABEL dependencies.python="3.10"
+LABEL dependencies.core="psycopg2,fastapi,pandas"
+
+# Security
+LABEL security.user="appuser"
+LABEL security.non_root="true"
+LABEL security.readonly_filesystem="false"
+
+# Performance specifications
+LABEL performance.memory_limit="2GB"
+LABEL performance.cpu_limit="2.0"
+LABEL performance.startup_time="45s"
+
+# =============================================================================
+# Default Command (Placeholder - Override in docker-compose.yml)
+# =============================================================================
+# The actual command will be specified in docker-compose.yml for each service
+CMD ["python", "-c", "import time; print('Data processing container ready - waiting for service command...'); time.sleep(3600)"]

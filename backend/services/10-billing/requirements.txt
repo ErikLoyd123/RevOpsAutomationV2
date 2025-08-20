@@ -1,0 +1,10 @@
+# Billing Normalization Service Dependencies
+# Inherits from backend/requirements.txt
+
+# Core dependencies (should be in parent requirements.txt)
+psycopg2-binary>=2.9.0
+structlog>=23.1.0
+pydantic>=2.0.0
+
+# Additional dependencies specific to billing service
+# (None currently - all deps covered by core backend)

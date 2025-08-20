@@ -1,0 +1,686 @@
+# =============================================================================
+# RevOps Automation Platform - Docker Compose Configuration
+# =============================================================================
+# Unified orchestration for all platform services with GPU support
+# Optimized for NVIDIA RTX 3070 Ti with extensible service architecture
+# 
+# Usage:
+#   Development:     docker-compose up
+#   GPU Development: docker-compose --profile gpu up
+#   Production:      docker-compose --profile prod up
+# =============================================================================
+
+version: '3.8'
+
+# =============================================================================
+# Networks Configuration
+# =============================================================================
+networks:
+  revops-network:
+    driver: bridge
+    name: revops-automation
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# =============================================================================
+# Volumes Configuration
+# =============================================================================
+volumes:
+  # PostgreSQL persistent storage
+  postgres_data:
+    driver: local
+    name: revops_postgres_data
+  
+  # BGE model cache for faster startups
+  bge_model_cache:
+    driver: local
+    name: revops_bge_models
+  
+  # Shared application logs
+  app_logs:
+    driver: local
+    name: revops_app_logs
+  
+  # Redis data for message queues
+  redis_data:
+    driver: local
+    name: revops_redis_data
+
+# =============================================================================
+# Base Services (Always Available)
+# =============================================================================
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database with pgvector Extension
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    container_name: revops-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LOCAL_DB_NAME:-revops_core}
+      POSTGRES_USER: ${LOCAL_DB_USER:-revops_user}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-RevOps2024Secure!}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+      # Performance tuning for development
+      POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements,pgvector
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d
+      - app_logs:/var/log/postgresql
+    ports:
+      - "${LOCAL_DB_PORT:-5432}:5432"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.10
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER:-revops_user} -d ${LOCAL_DB_NAME:-revops_core}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements,pgvector
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+    labels:
+      - "com.revops.service=database"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+  # ---------------------------------------------------------------------------
+  # Redis Message Queue and Cache
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7.2-alpine
+    container_name: revops-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+      - app_logs:/var/log/redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.11
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.revops.service=message-queue"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+# =============================================================================
+# Data Processing Services (Database Infrastructure Phase)
+# =============================================================================
+  # ---------------------------------------------------------------------------
+  # Data Ingestion Service
+  # ---------------------------------------------------------------------------
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/data-processing/Dockerfile
+    container_name: revops-ingestion-service
+    restart: unless-stopped
+    environment:
+      # Local Database Connection
+      LOCAL_DB_HOST: postgres
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${LOCAL_DB_NAME:-revops_core}
+      LOCAL_DB_USER: ${LOCAL_DB_USER:-revops_user}
+      LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-RevOps2024Secure!}
+      
+      # Odoo Production Database (Read-Only)
+      ODOO_DB_HOST: ${ODOO_DB_HOST}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_NAME: ${ODOO_DB_NAME}
+      ODOO_DB_USER: ${ODOO_DB_USER}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD}
+      ODOO_DB_SSL_MODE: ${ODOO_DB_SSL_MODE:-require}
+      
+      # APN Production Database (Read-Only)
+      APN_DB_HOST: ${APN_DB_HOST}
+      APN_DB_PORT: ${APN_DB_PORT:-5432}
+      APN_DB_NAME: ${APN_DB_NAME}
+      APN_DB_USER: ${APN_DB_USER}
+      APN_DB_PASSWORD: ${APN_DB_PASSWORD}
+      APN_DB_SSL_MODE: ${APN_DB_SSL_MODE:-require}
+      
+      # Service Configuration
+      SERVICE_PORT: ${INGESTION_SERVICE_PORT:-8001}
+      INGESTION_BATCH_SIZE: ${INGESTION_BATCH_SIZE:-1000}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./backend/core:/app/core:ro
+      - ./data:/app/data
+      - app_logs:/app/logs
+    ports:
+      - "${INGESTION_SERVICE_PORT:-8001}:8001"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.12
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    command: ["python", "/app/scripts/04-deployment/02_run_ingestion_service.py"]
+    labels:
+      - "com.revops.service=ingestion"
+      - "com.revops.phase=database-infrastructure"
+      - "com.revops.environment=${APP_ENV:-development}"
+
+  # ---------------------------------------------------------------------------
+  # Data Transformation Service
+  # ---------------------------------------------------------------------------
+  transformation-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/data-processing/Dockerfile
+    container_name: revops-transformation-service
+    restart: unless-stopped
+    environment:
+      # Local Database Connection
+      LOCAL_DB_HOST: postgres
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${LOCAL_DB_NAME:-revops_core}
+      LOCAL_DB_USER: ${LOCAL_DB_USER:-revops_user}
+      LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-RevOps2024Secure!}
+      
+      # Service Configuration
+      SERVICE_PORT: ${TRANSFORMATION_SERVICE_PORT:-8002}
+      TRANSFORMATION_CHUNK_SIZE: ${TRANSFORMATION_CHUNK_SIZE:-5000}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./backend/core:/app/core:ro
+      - ./data:/app/data
+      - app_logs:/app/logs
+    ports:
+      - "${TRANSFORMATION_SERVICE_PORT:-8002}:8002"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.13
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ingestion-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    command: ["python", "/app/scripts/04-deployment/03_run_transformation_service.py"]
+    labels:
+      - "com.revops.service=transformation"
+      - "com.revops.phase=database-infrastructure"
+      - "com.revops.environment=${APP_ENV:-development}"
+
+  # ---------------------------------------------------------------------------
+  # Data Validation Service
+  # ---------------------------------------------------------------------------
+  validation-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/data-processing/Dockerfile
+    container_name: revops-validation-service
+    restart: unless-stopped
+    environment:
+      # Local Database Connection
+      LOCAL_DB_HOST: postgres
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${LOCAL_DB_NAME:-revops_core}
+      LOCAL_DB_USER: ${LOCAL_DB_USER:-revops_user}
+      LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-RevOps2024Secure!}
+      
+      # Service Configuration
+      SERVICE_PORT: ${VALIDATION_SERVICE_PORT:-8003}
+      VALIDATION_PARALLEL_CHECKS: ${VALIDATION_PARALLEL_CHECKS:-10}
+      DQ_ENABLE_AUTO_CHECKS: ${DQ_ENABLE_AUTO_CHECKS:-true}
+      DQ_ALERT_THRESHOLD: ${DQ_ALERT_THRESHOLD:-0.95}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-INFO}
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./backend/core:/app/core:ro
+      - ./data:/app/data
+      - app_logs:/app/logs
+    ports:
+      - "${VALIDATION_SERVICE_PORT:-8003}:8003"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.14
+    depends_on:
+      postgres:
+        condition: service_healthy
+      transformation-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    command: ["python", "/app/scripts/04-deployment/04_run_validation_service.py"]
+    labels:
+      - "com.revops.service=validation"
+      - "com.revops.phase=database-infrastructure"
+      - "com.revops.environment=${APP_ENV:-development}"
+
+# =============================================================================
+# BGE Embeddings Service (GPU Profile)
+# =============================================================================
+  # ---------------------------------------------------------------------------
+  # BGE-M3 GPU Embeddings Service
+  # ---------------------------------------------------------------------------
+  bge-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/bge-service/Dockerfile
+      target: runtime
+    container_name: revops-bge-service
+    restart: unless-stopped
+    profiles:
+      - gpu
+      - prod
+    runtime: nvidia
+    environment:
+      # NVIDIA GPU Configuration
+      NVIDIA_VISIBLE_DEVICES: "0"
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      CUDA_VISIBLE_DEVICES: "0"
+      
+      # BGE Service Configuration
+      BGE_MODEL_PATH: /app/models/bge-m3
+      BGE_MAX_BATCH_SIZE: ${BGE_BATCH_SIZE:-32}
+      BGE_MAX_SEQUENCE_LENGTH: ${BGE_MAX_SEQUENCE:-8192}
+      BGE_SIMILARITY_THRESHOLD: ${BGE_SIMILARITY_THRESHOLD:-0.7}
+      BGE_CACHE_SIZE: ${BGE_CACHE_SIZE:-1000}
+      
+      # Database Connection
+      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
+      
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # Service Configuration
+      SERVICE_PORT: 8007
+      SERVICE_NAME: bge-embeddings
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      
+      # Performance Tuning for RTX 3070 Ti
+      TORCH_CUDA_ARCH_LIST: "8.6"
+      PYTORCH_CUDA_ALLOC_CONF: "max_split_size_mb:128"
+      TORCH_CUDNN_V8_API_ENABLED: "1"
+      OMP_NUM_THREADS: "4"
+      MKL_NUM_THREADS: "4"
+    volumes:
+      - bge_model_cache:/app/models
+      - ./backend/services/07-embeddings:/app/src
+      - app_logs:/app/logs
+    ports:
+      - "${BGE_PORT:-8007}:8007"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.20
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']
+              capabilities: [gpu]
+        limits:
+          memory: 6G
+          cpus: '4.0'
+    labels:
+      - "com.revops.service=embeddings"
+      - "com.revops.gpu=required"
+      - "com.revops.gpu.model=RTX_3070_Ti"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+  # ---------------------------------------------------------------------------
+  # BGE CPU Fallback Service (Development Profile)
+  # ---------------------------------------------------------------------------
+  bge-service-cpu:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/bge-service/Dockerfile
+      target: runtime
+    container_name: revops-bge-service-cpu
+    restart: unless-stopped
+    profiles:
+      - dev
+      - cpu
+    environment:
+      # CPU-only Configuration
+      CUDA_VISIBLE_DEVICES: ""
+      
+      # BGE Service Configuration
+      BGE_MODEL_PATH: /app/models/bge-m3
+      BGE_MAX_BATCH_SIZE: ${BGE_BATCH_SIZE:-8}  # Smaller batches for CPU
+      BGE_MAX_SEQUENCE_LENGTH: ${BGE_MAX_SEQUENCE:-4096}  # Reduced for CPU
+      BGE_SIMILARITY_THRESHOLD: ${BGE_SIMILARITY_THRESHOLD:-0.7}
+      BGE_CACHE_SIZE: ${BGE_CACHE_SIZE:-500}
+      
+      # Database Connection
+      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
+      
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+      
+      # Service Configuration
+      SERVICE_PORT: 8007
+      SERVICE_NAME: bge-embeddings-cpu
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      
+      # CPU Performance Tuning
+      OMP_NUM_THREADS: "8"
+      MKL_NUM_THREADS: "8"
+      OPENBLAS_NUM_THREADS: "8"
+    volumes:
+      - bge_model_cache:/app/models
+      - ./backend/services/07-embeddings:/app/src
+      - app_logs:/app/logs
+    ports:
+      - "${BGE_PORT:-8007}:8007"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.21
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s  # Longer startup time for CPU
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '8.0'
+    labels:
+      - "com.revops.service=embeddings"
+      - "com.revops.gpu=fallback"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+# =============================================================================
+# Additional Services (Future Extension Points)
+# =============================================================================
+  # ---------------------------------------------------------------------------
+  # Billing Normalization Service (Placeholder)
+  # ---------------------------------------------------------------------------
+  billing-service:
+    image: python:3.10-slim
+    container_name: revops-billing-service
+    restart: unless-stopped
+    profiles:
+      - full
+      - prod
+    environment:
+      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
+      REDIS_URL: redis://redis:6379/1
+      SERVICE_PORT: 8010
+      SERVICE_NAME: billing-normalization
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend/services/10-billing:/app/src
+      - app_logs:/app/logs
+    ports:
+      - "${BILLING_PORT:-8010}:8010"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.30
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["python", "-c", "import time; time.sleep(999999)"]  # Placeholder
+    labels:
+      - "com.revops.service=billing"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+  # ---------------------------------------------------------------------------
+  # Opportunity Matching Service (Placeholder)
+  # ---------------------------------------------------------------------------
+  matching-service:
+    image: python:3.10-slim
+    container_name: revops-matching-service
+    restart: unless-stopped
+    profiles:
+      - full
+      - prod
+    environment:
+      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
+      REDIS_URL: redis://redis:6379/2
+      BGE_SERVICE_URL: http://bge-service:8007
+      SERVICE_PORT: 8008
+      SERVICE_NAME: opportunity-matching
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend/services/08-matching:/app/src
+      - app_logs:/app/logs
+    ports:
+      - "${MATCHING_PORT:-8008}:8008"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.31
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      bge-service:
+        condition: service_healthy
+    command: ["python", "-c", "import time; time.sleep(999999)"]  # Placeholder
+    labels:
+      - "com.revops.service=matching"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+  # ---------------------------------------------------------------------------
+  # POD Rules Engine Service (Placeholder)
+  # ---------------------------------------------------------------------------
+  rules-service:
+    image: python:3.10-slim
+    container_name: revops-rules-service
+    restart: unless-stopped
+    profiles:
+      - full
+      - prod
+    environment:
+      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
+      REDIS_URL: redis://redis:6379/3
+      BILLING_SERVICE_URL: http://billing-service:8010
+      SERVICE_PORT: 8009
+      SERVICE_NAME: pod-rules-engine
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend/services/09-rules:/app/src
+      - app_logs:/app/logs
+    ports:
+      - "${RULES_PORT:-8009}:8009"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.32
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      billing-service:
+        condition: service_started
+    command: ["python", "-c", "import time; time.sleep(999999)"]  # Placeholder
+    labels:
+      - "com.revops.service=rules"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+  # ---------------------------------------------------------------------------
+  # API Gateway Service (Placeholder)
+  # ---------------------------------------------------------------------------
+  api-gateway:
+    image: python:3.10-slim
+    container_name: revops-api-gateway
+    restart: unless-stopped
+    profiles:
+      - full
+      - prod
+    environment:
+      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
+      REDIS_URL: redis://redis:6379/4
+      
+      # Service Discovery URLs
+      BGE_SERVICE_URL: http://bge-service:8007
+      BILLING_SERVICE_URL: http://billing-service:8010
+      MATCHING_SERVICE_URL: http://matching-service:8008
+      RULES_SERVICE_URL: http://rules-service:8009
+      
+      SERVICE_PORT: 8000
+      SERVICE_NAME: api-gateway
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    volumes:
+      - ./backend/services/11-api-gateway:/app/src
+      - app_logs:/app/logs
+    ports:
+      - "${API_GATEWAY_PORT:-8000}:8000"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.40
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["python", "-c", "import time; time.sleep(999999)"]  # Placeholder
+    labels:
+      - "com.revops.service=api-gateway"
+      - "com.revops.environment=${ENVIRONMENT:-development}"
+
+# =============================================================================
+# Development and Monitoring Tools
+# =============================================================================
+  # ---------------------------------------------------------------------------
+  # PgAdmin (Development Profile Only)
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: revops-pgadmin
+    restart: unless-stopped
+    profiles:
+      - dev
+      - monitoring
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@revops.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - ./infrastructure/postgres/pgadmin:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.50
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "com.revops.service=monitoring"
+      - "com.revops.tool=pgadmin"
+
+  # ---------------------------------------------------------------------------
+  # Redis Commander (Development Profile Only)
+  # ---------------------------------------------------------------------------
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: revops-redis-commander
+    restart: unless-stopped
+    profiles:
+      - dev
+      - monitoring
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8081}:8081"
+    networks:
+      revops-network:
+        ipv4_address: 172.20.0.51
+    depends_on:
+      redis:
+        condition: service_healthy
+    labels:
+      - "com.revops.service=monitoring"
+      - "com.revops.tool=redis-commander"
+
+# =============================================================================
+# Docker Compose Overrides and Environment Configuration
+# =============================================================================
+# To use environment-specific configurations:
+#
+# Development (CPU-only):
+#   docker-compose --profile dev up
+#
+# Development with GPU:
+#   docker-compose --profile gpu up
+#
+# Full stack with monitoring:
+#   docker-compose --profile dev --profile monitoring --profile full up
+#
+# Production:
+#   docker-compose --profile prod up
+#
+# Environment variables can be set in:
+#   - .env file (for local development)
+#   - .env.local file (for local overrides)
+#   - Environment-specific files (.env.development, .env.production)
+# =============================================================================
