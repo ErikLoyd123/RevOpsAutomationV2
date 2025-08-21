@@ -164,6 +164,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `09_create_core_tables.py` - Create normalized CORE tables for business entities and matching (✅ Updated with POD fields and BGE embedding infrastructure)
 - `10_create_ops_search_tables.py` - Create operational tracking and vector embedding tables with conditional pgvector support (✅ uses relative paths)
 - `11_add_embedding_fields.py` - Add Identity/Context Embedding Fields to CORE Opportunities - extends core.opportunities table with BGE-M3 dual embedding infrastructure, hash-based change detection, and performance indexes for POD matching (✅ Task 2.6 completed)
+- `12_create_billing_core_tables.py` - Create CORE Billing Schema - creates 6 normalized billing tables (customer_invoices, customer_invoice_lines, aws_costs, invoice_reconciliation, billing_aggregates, pod_eligibility) with proper indexes, constraints, and relationships for POD matching workflow (✅ Task 3.2 completed)
 
 ### 03-data/
 - `01_discover_actual_odoo_schemas.py` - Discovers actual Odoo database schema from live production database using information_schema (replaces model-based discovery) (✅ uses relative paths)
@@ -178,6 +179,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `11_normalize_aws_accounts.py` - AWS Account Normalization Script - creates master AWS accounts in CORE schema with resolved company/partner names, payer relationship resolution, domain extraction and normalization, and combined text generation for BGE embeddings (✅ Task 5.2 completed)
 - `12_validate_data_quality.py` - Data Validation Script - comprehensive data validation for CORE schema with quality checks that validate 7,937 opportunities + AWS accounts data integrity, required field validation, referential integrity checks, business rule validation, data completeness analysis, cross-system consistency validation, and detailed reporting with quality scoring (✅ Task 6.1 completed)
 - `13_run_quality_checks.py` - Quality Check Script - comprehensive quality assessment engine that executes validation checks, calculates quality metrics (completeness, accuracy, consistency, timeliness, uniqueness), generates quality scores and grades, flags data anomalies and critical issues, provides detailed reports with actionable recommendations, analyzes quality trends over time, and generates automated alerts with monitoring capabilities (✅ Task 6.2 completed)
+- `14_normalize_billing_data.py` - Billing Data Normalization Script - transforms RAW billing data (154,591 AWS costs + 12,658 invoices + 2.4M invoice lines) into 6 CORE billing tables following successful aws_accounts/opportunities pattern with direct SQL transformations, POD eligibility calculations, and comprehensive progress tracking (✅ Task 3.3 completed)
 
 ### 03-data/archived/
 - `01_discover_schemas.py` - ARCHIVED: Basic schema discovery from source databases
@@ -280,6 +282,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 
 ### backend/services/10-billing/
 - `normalizer.py` - Billing data normalizer transforming RAW tables to CORE schema with data quality validation, incremental processing, and spend aggregation (✅ completed Task 3.1)
+- `spend_analyzer.py` - Spend analysis API integration with customer spend analysis, POD eligibility scoring, margin optimization insights, and REST API endpoints for billing service integration (✅ completed Task 3.3)
 - `requirements.txt` - Python dependencies for billing service
 - `__init__.py` - Package initialization for billing service
 

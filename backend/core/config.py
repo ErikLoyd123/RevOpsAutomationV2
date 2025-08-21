@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from functools import lru_cache
 
-from pydantic import BaseSettings, Field, validator, PostgresDsn
+from pydantic import Field, validator, PostgresDsn
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
 
@@ -20,6 +21,8 @@ if env_path.exists():
 
 class DatabaseConfig(BaseSettings):
     """Database connection configuration"""
+    
+    model_config = {"extra": "allow"}
     
     # Local database
     local_db_host: str = Field(default="localhost", env="LOCAL_DB_HOST")
@@ -76,14 +79,12 @@ class DatabaseConfig(BaseSettings):
         if "local_db_pool_min" in values and v <= values["local_db_pool_min"]:
             raise ValueError("local_db_pool_max must be greater than local_db_pool_min")
         return v
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 class ServiceConfig(BaseSettings):
     """Service configuration for microservices"""
+    
+    model_config = {"extra": "allow"}
     
     # API Service
     api_host: str = Field(default="0.0.0.0", env="API_HOST")
@@ -102,14 +103,12 @@ class ServiceConfig(BaseSettings):
     
     # Validation Service
     validation_parallel_checks: int = Field(default=10, env="VALIDATION_PARALLEL_CHECKS", ge=1)
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 class AppConfig(BaseSettings):
     """Application-wide configuration"""
+    
+    model_config = {"extra": "allow"}
     
     # Environment
     app_env: str = Field(default="development", env="APP_ENV")
@@ -156,14 +155,12 @@ class AppConfig(BaseSettings):
         if values.get("app_env") == "production" and v:
             raise ValueError("Debug mode must be disabled in production")
         return v
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 class DataQualityConfig(BaseSettings):
     """Data quality and monitoring configuration"""
+    
+    model_config = {"extra": "allow"}
     
     dq_enable_auto_checks: bool = Field(default=True, env="DQ_ENABLE_AUTO_CHECKS")
     dq_check_frequency_hours: int = Field(default=6, env="DQ_CHECK_FREQUENCY_HOURS", ge=1)
@@ -177,14 +174,12 @@ class DataQualityConfig(BaseSettings):
         if values.get("dq_email_alerts") and not v:
             raise ValueError("Alert email is required when email alerts are enabled")
         return v
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 class SyncConfig(BaseSettings):
     """Data synchronization configuration"""
+    
+    model_config = {"extra": "allow"}
     
     sync_schedule_enabled: bool = Field(default=False, env="SYNC_SCHEDULE_ENABLED")
     sync_odoo_cron: str = Field(default="0 2 * * *", env="SYNC_ODOO_CRON")
@@ -192,10 +187,6 @@ class SyncConfig(BaseSettings):
     sync_retry_attempts: int = Field(default=3, env="SYNC_RETRY_ATTEMPTS", ge=0)
     sync_retry_delay_seconds: int = Field(default=60, env="SYNC_RETRY_DELAY_SECONDS", ge=1)
     sync_timeout_minutes: int = Field(default=30, env="SYNC_TIMEOUT_MINUTES", ge=1)
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 class Settings:

@@ -62,28 +62,39 @@
 
 ## Phase 3: Billing Normalization Service
 
-- [x] 3.1 Create Billing Data Normalizer
-  - File: backend/services/10-billing/normalizer.py
-  - Transform RAW billing tables (c_billing_internal_cur, c_billing_bill_line) to CORE schema
-  - Implement incremental updates and data quality validation
-  - Create spend aggregation by customer, account, and time period
+- [x] 3.1 Enhanced Billing Data Normalizer
+  - File: backend/services/10-billing/normalizer.py (ENHANCE EXISTING)
+  - Current: Transforms RAW billing to core.billing_summary, core.billing_line_items, core.billing_quality_log (3 tables)
+  - Enhancement: Extend to support 6 new CORE billing tables (customer_invoices, customer_invoice_lines, aws_costs, invoice_reconciliation, billing_aggregates, pod_eligibility)
+  - Add normalization methods for customer/invoice-level processing and POD eligibility rules
+  - Implementation Guide: See billing_normalization_plan.md for CORE schema design and business rules
   - _Prerequisites: 1.1, 1.2_
   - _Requirement: 4_
 
-- [ ] 3.2 Implement Spend Analysis Engine
-  - File: backend/services/10-billing/spend_analyzer.py
-  - Calculate monthly, quarterly, and yearly spend summaries
-  - Implement spend threshold validation for POD eligibility
-  - Add cost trend analysis and anomaly detection
+- [x] 3.2 Create CORE Billing Schema
+  - File: scripts/02-database/12_create_billing_core_tables.py
+  - Create 6 CORE billing tables in existing CORE schema (customer_invoices, customer_invoice_lines, aws_costs, invoice_reconciliation, billing_aggregates, pod_eligibility)
+  - Use complete CREATE TABLE statements from billing_normalization_plan.md "CORE Schema Design" section
+  - Add proper indexes, constraints, and relationships for POD matching workflow
   - _Prerequisites: 3.1_
   - _Requirement: 4_
 
-- [ ] 3.3 Create Billing API Endpoints
-  - File: backend/services/10-billing/api.py
-  - REST endpoints for billing normalization and spend analysis
-  - Support real-time spend queries for POD rules validation
-  - Add billing data export and reporting capabilities
+- [x] 3.3 Billing Data Normalization Pipeline
+  - Primary File: scripts/03-data/14_normalize_billing_pipeline.py
+  - Secondary File: backend/services/10-billing/spend_analyzer.py (API integration)
+  - Transform existing RAW billing data to CORE schema with spend analysis integration
+  - Implement field mappings from billing_normalization_plan.md "Appendix: Field Mappings" section
+  - Add POD eligibility calculations and margin analysis per "Key Business Rules"
   - _Prerequisites: 3.2_
+  - _Requirement: 4_
+
+- [ ] 3.4 Billing Quality Validation and API
+  - Primary File: scripts/03-data/15_validate_billing_normalization.py
+  - Secondary File: backend/services/10-billing/api.py (API endpoints)
+  - Validate billing normalization accuracy using queries from billing_normalization_plan.md "Post-Implementation Review Process"
+  - Create API endpoints for CORE billing tables with validation from "Data Review and Validation Plan" section
+  - Add comprehensive quality checks for POD eligibility and margin calculations
+  - _Prerequisites: 3.3_
   - _Requirement: 4_
 
 ## Phase 4: Opportunity Matching Service

@@ -2,45 +2,92 @@
 ## RevOps Automation Platform - Financial Data Architecture
 
 ## Executive Summary
-This plan outlines the normalization strategy for billing and financial data to support Partner Originated Discount (POD) eligibility determination and Business Intelligence analytics. The plan addresses both database schema design and service implementation requirements.
 
-## Current State Analysis
+This plan creates a comprehensive billing normalization strategy to transform 12 RAW Odoo tables into 5 normalized CORE tables that enable:
 
-### RAW Schema Billing Tables
+1. **Account-by-Product Analytics**: See what Cloud303 invoices customers vs. what AWS charges Cloud303
+2. **POD Eligibility Determination**: Use AWS costs to calculate Partner Originated Discount eligibility  
+3. **Margin Analysis**: Compare customer billing vs. AWS costs for profit visibility
+4. **BI Dashboard Support**: Pre-calculated aggregates for trends, upsell opportunities, and growth metrics
 
-#### Customer Invoice Data
-- **c_billing_bill** (Custom Odoo Module)
-  - 145 fields tracking customer invoices
-  - Links to partners, users, AWS accounts
-  - Contains invoice totals and metadata
-  
-- **c_billing_bill_line** (Custom Odoo Module)  
-  - 89 fields for invoice line items
-  - Product/service level detail
-  - Individual pricing and quantities
-  - Links to bills, partners, products
+**Key Strategy**: Normalize complex Odoo billing data (custom c_ modules + native tables) into business-friendly tables while maintaining referential integrity to existing `core.aws_accounts` and `core.opportunities` for seamless POD matching.
 
-#### AWS Cost Data
-- **c_billing_internal_cur** (Custom Odoo Module)
-  - AWS Cost and Usage Report data
-  - Product-level AWS service costs
-  - Critical for POD eligibility determination
-  - Contains unblended costs by account/product
+## Current State Analysis - RAW Tables
 
-#### Partner Discount Data (Future)
-- **c_billing_spp_bill** (Solution Provider Program)
-  - Not yet ingested but exists in Odoo
-  - Contains SPP discount actuals
-  
-- **c_billing_ingram_bill** (Distributor)
-  - Not yet ingested but exists in Odoo  
-  - Contains distributor discount actuals
+### Custom Odoo Modules (c_ prefix = Custom Cloud303 Modules)
 
-### Native Odoo Tables (Supporting Data)
-- **account_move** - Journal entries and financial movements
-- **account_move_line** - Detailed accounting lines
-- **product_product** - Product catalog
-- **product_template** - Product templates
+#### Core Billing Tables
+1. **odoo_c_billing_bill** (145 fields) - **Account-level invoice staging for customer billing**
+   - Where Cloud303 creates and stages all customer invoices by account level  
+   - Very useful for showing how much Cloud303 invoices each customer by account
+   - Different from account_move (which is aggregated final invoices)
+   - Links to res_partner, c_aws_accounts
+   - **Business Purpose**: What we invoice customers (staging level)
+
+2. **odoo_c_billing_bill_line** (89 fields) - **Product-level detail for customer invoicing**  
+   - Account-by-product level of what Cloud303 invoices customers
+   - Relates to odoo_c_billing_bill as parent
+   - Comparable to c_billing_internal_cur but shows customer charges vs AWS charges
+   - **Business Purpose**: Product-level breakdown of customer invoicing
+
+3. **odoo_c_billing_internal_cur** - **CRITICAL: AWS Cost and Usage Report** 
+   - Shows how much AWS charged Cloud303 (unblended costs)
+   - Contains `charge_type` field showing discount types (below is an example):
+     - `RIFee` - Reserved Instance fees
+     - `usage` - Standard usage charges  
+     - `discounted usage` - Usage with discounts applied
+     - `Solution Provider Program Discount` - SPP discounts received
+     - `Distributor Discount` - Distributor discounts received
+   - **Business Purpose**: What AWS charges us (critical for POD eligibility and margin calculation)
+
+#### Supporting Custom Tables
+4. **odoo_c_aws_accounts** - Already normalized into `core.aws_accounts`
+
+5. **odoo_c_billing_spp_bill** - Solution Provider Program discount actuals from AWS APN analytics
+   - Exist in RAW files but we're missing its counter part on the distribution side c_billing_ingram_bill
+   - Represents actual discounts received from AWS through SPP program
+   - **Future**: Will be added for discount actual tracking
+
+6. **odoo_c_aws_funding_request** - AWS funding requests (APFP-like)
+   - Funding requests for specific projects
+   - One funding request can attach to multiple projects
+   - **Future**: Project-level funding analysis
+
+### Native Odoo 14 Tables
+
+#### Financial Tables  
+7. **odoo_account_move** - **Final aggregated invoice table**
+   - Journal entries and financial movements
+   - Aggregated final invoices (vs c_billing_bill staging)
+   - **Business Purpose**: Validation comparison against staging invoices
+
+8. **odoo_account_move_line** - **Final aggregated invoice product detail**  
+   - Detailed accounting lines for final invoices
+   - Aggregated product detail (vs c_billing_bill_line staging)
+   - **Business Purpose**: Product-level validation against staging
+
+#### Supporting Tables
+9. **odoo_product_template** - Product catalog for line item normalization
+10. **odoo_res_partner** - Company/contact information  
+11. **odoo_project_project** - Project details for funding requests
+12. **odoo_sale_order** / **odoo_sale_order_line** - Sales order data
+
+### Critical Business Logic
+
+**Margin Calculation Formula:**
+```
+Customer Revenue (from c_billing_bill_line) 
+MINUS 
+AWS Costs (from c_billing_internal_cur)
+EQUALS
+Cloud303 Margin
+```
+
+**POD Eligibility**: Uses `cost` from `c_billing_internal_cur` (representing 'unblended cost') to determine spending thresholds
+
+**Discount Analysis**: `charge_type` field shows actual discount types received from AWS
+
+**Validation**: Compare `c_billing_bill` totals vs `account_move` totals for accuracy (there will be differences from two sources, 1. Rounding 2. Cloud303 offers discounts that are aggregrated at the account_move line (product is found in account_move_line) and credits which should be in c_billing_bill_line 
 
 ## Normalization Architecture
 
@@ -53,112 +100,110 @@ This plan outlines the normalization strategy for billing and financial data to 
 
 ### CORE Schema Design
 
-#### 1. core.billing_invoices
-Normalized customer invoice headers combining c_billing_bill data with resolved references.
+#### 1. core.customer_invoices  
+**Purpose**: Normalized customer billing from c_billing_bill with resolved references  
+**RAW Sources**: 
+- **PRIMARY**: `raw.odoo_c_billing_bill` (145 fields → normalized to ~15 key fields)
+- **LOOKUP**: `raw.odoo_res_partner` (customer name resolution)
+- **LOOKUP**: `raw.odoo_c_aws_accounts` (account linking - already normalized)
+**Business Intent**: Show what Cloud303 invoices customers at account level
 
 ```sql
-CREATE TABLE core.billing_invoices (
-    -- Identity
+CREATE TABLE core.customer_invoices (
+    -- Identity  
     invoice_id SERIAL PRIMARY KEY,
-    invoice_number VARCHAR(100) UNIQUE NOT NULL,
-    source_bill_id INTEGER NOT NULL,  -- c_billing_bill.id
+    bill_id INTEGER NOT NULL,  -- FROM raw.odoo_c_billing_bill.id
     
-    -- Customer Information
-    customer_account_id INTEGER REFERENCES core.aws_accounts(account_id),
-    customer_name VARCHAR(255) NOT NULL,  -- Resolved from res_partner
-    customer_domain VARCHAR(255),
-    customer_type VARCHAR(50),  -- 'direct', 'partner', 'distributor'
+    -- Customer Information (FROM raw.odoo_res_partner via c_billing_bill.partner_id)
+    aws_account_id INTEGER REFERENCES core.aws_accounts(account_id),  -- FROM raw.odoo_c_aws_accounts
+    customer_name VARCHAR(255) NOT NULL,  -- FROM raw.odoo_res_partner.name
+    customer_domain VARCHAR(255),  -- FROM raw.odoo_res_partner.website
     
-    -- Partner Information (if applicable)
-    partner_account_id INTEGER REFERENCES core.aws_accounts(account_id),
-    partner_name VARCHAR(255),  -- Resolved from res_partner
-    partner_type VARCHAR(50),  -- 'solution_provider', 'distributor', 'consulting'
+    -- Invoice Details (FROM raw.odoo_c_billing_bill)
+    invoice_number VARCHAR(100),  -- FROM raw.odoo_c_billing_bill.name
+    invoice_date DATE NOT NULL,  -- FROM raw.odoo_c_billing_bill.date_invoice
+    billing_period_start DATE,  -- FROM raw.odoo_c_billing_bill.period_start
+    billing_period_end DATE,  -- FROM raw.odoo_c_billing_bill.period_end
+    currency_code VARCHAR(3) DEFAULT 'USD',  -- FROM raw.odoo_c_billing_bill.currency_id
     
-    -- Invoice Details
-    invoice_date DATE NOT NULL,
-    due_date DATE,
-    currency_code VARCHAR(3) DEFAULT 'USD',
-    invoice_total DECIMAL(15,2) NOT NULL,
-    invoice_subtotal DECIMAL(15,2),
-    tax_amount DECIMAL(15,2),
-    discount_amount DECIMAL(15,2),
+    -- Financial Totals (FROM raw.odoo_c_billing_bill)
+    subtotal_amount DECIMAL(15,2),  -- FROM raw.odoo_c_billing_bill.amount_untaxed
+    tax_amount DECIMAL(15,2),  -- FROM raw.odoo_c_billing_bill.amount_tax
+    total_amount DECIMAL(15,2) NOT NULL,  -- FROM raw.odoo_c_billing_bill.amount_total
     
-    -- Status and Classification
-    invoice_status VARCHAR(50),  -- 'draft', 'posted', 'paid', 'cancelled'
-    payment_status VARCHAR(50),
-    invoice_type VARCHAR(50),  -- 'standard', 'credit_note', 'debit_note'
-    billing_period_start DATE,
-    billing_period_end DATE,
+    -- Status Tracking (FROM raw.odoo_c_billing_bill)
+    invoice_status VARCHAR(50),  -- FROM raw.odoo_c_billing_bill.state
+    payment_status VARCHAR(50),  -- FROM raw.odoo_c_billing_bill.payment_state
     
-    -- POD Related
+    -- POD Integration
     pod_eligible BOOLEAN DEFAULT FALSE,
-    pod_opportunity_id INTEGER REFERENCES core.opportunities(opportunity_id),
-    discount_program VARCHAR(50),  -- 'SPP', 'Distributor', 'Custom'
+    related_opportunity_id INTEGER REFERENCES core.opportunities(opportunity_id),
     
     -- Metadata
-    created_date TIMESTAMP NOT NULL,
-    modified_date TIMESTAMP,
-    _source_system VARCHAR(50) DEFAULT 'odoo',
+    created_date TIMESTAMP,
+    _source_system VARCHAR(50) DEFAULT 'odoo_c_billing_bill',
     _sync_batch_id UUID,
     _last_synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_billing_invoices_customer ON core.billing_invoices(customer_account_id);
-CREATE INDEX idx_billing_invoices_partner ON core.billing_invoices(partner_account_id);
-CREATE INDEX idx_billing_invoices_date ON core.billing_invoices(invoice_date);
-CREATE INDEX idx_billing_invoices_pod ON core.billing_invoices(pod_eligible, pod_opportunity_id);
+CREATE INDEX idx_customer_invoices_account ON core.customer_invoices(aws_account_id);
+CREATE INDEX idx_customer_invoices_date ON core.customer_invoices(invoice_date);
+CREATE INDEX idx_customer_invoices_pod ON core.customer_invoices(pod_eligible);
 ```
 
-#### 2. core.billing_invoice_lines
-Normalized invoice line items with product-level detail.
+#### 2. core.customer_invoice_lines  
+**Purpose**: Product-level detail for customer invoicing from c_billing_bill_line
+**RAW Sources**: 
+- **PRIMARY**: `raw.odoo_c_billing_bill_line` (89 fields → normalized to ~12 key fields)
+- **LOOKUP**: `raw.odoo_product_template` (product details via c_billing_bill_line.product_id)
+- **LOOKUP**: `core.customer_invoices` (parent invoice)
+**Business Intent**: Show what Cloud303 invoices customers at account-by-product level
 
 ```sql
-CREATE TABLE core.billing_invoice_lines (
+CREATE TABLE core.customer_invoice_lines (
     -- Identity
     line_id SERIAL PRIMARY KEY,
-    invoice_id INTEGER NOT NULL REFERENCES core.billing_invoices(invoice_id),
-    source_line_id INTEGER NOT NULL,  -- c_billing_bill_line.id
-    line_number INTEGER,
+    invoice_id INTEGER NOT NULL REFERENCES core.customer_invoices(invoice_id),
+    bill_line_id INTEGER NOT NULL,  -- FROM raw.odoo_c_billing_bill_line.id
     
-    -- Product Information
-    product_code VARCHAR(100),
-    product_name VARCHAR(500),
-    product_category VARCHAR(255),
-    product_family VARCHAR(255),
-    aws_service_code VARCHAR(100),  -- Mapped AWS service
+    -- Product Information (FROM raw.odoo_product_template via c_billing_bill_line.product_id)
+    product_code VARCHAR(100),  -- FROM raw.odoo_product_template.default_code
+    product_name VARCHAR(500) NOT NULL,  -- FROM raw.odoo_product_template.name
+    product_category VARCHAR(255),  -- FROM raw.odoo_product_template.categ_id
+    aws_service_mapping VARCHAR(100),  -- CALCULATED mapping to AWS service codes
     
-    -- Quantities and Pricing
-    quantity DECIMAL(15,4) NOT NULL,
-    unit_of_measure VARCHAR(50),
-    unit_price DECIMAL(15,4),
-    list_price DECIMAL(15,4),
-    discount_percentage DECIMAL(5,2),
-    line_total DECIMAL(15,2) NOT NULL,
-    line_subtotal DECIMAL(15,2),
-    tax_amount DECIMAL(15,2),
+    -- Pricing and Quantities (FROM raw.odoo_c_billing_bill_line)
+    quantity DECIMAL(15,4) NOT NULL,  -- FROM raw.odoo_c_billing_bill_line.quantity
+    unit_price DECIMAL(15,4),  -- FROM raw.odoo_c_billing_bill_line.price_unit
+    line_subtotal DECIMAL(15,2),  -- FROM raw.odoo_c_billing_bill_line.price_subtotal
+    line_total DECIMAL(15,2) NOT NULL,  -- FROM raw.odoo_c_billing_bill_line.price_total
     
-    -- Usage Period (for subscription/usage-based)
-    usage_start_date DATE,
-    usage_end_date DATE,
+    -- Time Period (FROM raw.odoo_c_billing_bill_line)
+    service_period_start DATE,  -- FROM raw.odoo_c_billing_bill_line.period_start
+    service_period_end DATE,  -- FROM raw.odoo_c_billing_bill_line.period_end
     
-    -- Cost Tracking
-    aws_cost DECIMAL(15,4),  -- Matched from AWS CUR
-    margin_amount DECIMAL(15,4),
+    -- Cost Comparison (calculated)
+    estimated_aws_cost DECIMAL(15,2),  -- Matched from aws_costs
+    estimated_margin DECIMAL(15,2),    -- line_total - aws_cost
     margin_percentage DECIMAL(5,2),
     
     -- Metadata
     description TEXT,
-    _source_system VARCHAR(50) DEFAULT 'odoo',
+    _source_system VARCHAR(50) DEFAULT 'odoo_c_billing_bill_line',
     _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_invoice_lines_invoice ON core.billing_invoice_lines(invoice_id);
-CREATE INDEX idx_invoice_lines_product ON core.billing_invoice_lines(product_code, aws_service_code);
-CREATE INDEX idx_invoice_lines_dates ON core.billing_invoice_lines(usage_start_date, usage_end_date);
+CREATE INDEX idx_customer_invoice_lines_invoice ON core.customer_invoice_lines(invoice_id);
+CREATE INDEX idx_customer_invoice_lines_product ON core.customer_invoice_lines(product_code, aws_service_mapping);
+CREATE INDEX idx_customer_invoice_lines_period ON core.customer_invoice_lines(service_period_start, service_period_end);
 ```
 
 #### 3. core.aws_costs
-Normalized AWS Cost and Usage Report data for cost tracking and POD eligibility.
+**Purpose**: Normalized AWS Cost and Usage Report data from c_billing_internal_cur  
+**RAW Sources**: 
+- **PRIMARY**: `raw.odoo_c_billing_internal_cur` (AWS CUR data imported into Odoo)
+- **LOOKUP**: `core.aws_accounts` (account mapping via usage_account_id)
+**Business Intent**: Show what AWS charges Cloud303 (critical for POD eligibility and margin calculation)
 
 ```sql
 CREATE TABLE core.aws_costs (
@@ -180,17 +225,20 @@ CREATE TABLE core.aws_costs (
     region VARCHAR(50),
     availability_zone VARCHAR(50),
     
-    -- Cost Metrics
+    -- Cost Details
     usage_quantity DECIMAL(20,8),
-    usage_unit VARCHAR(50),
-    unblended_cost DECIMAL(15,4) NOT NULL,  -- Key for POD eligibility
+    unblended_cost DECIMAL(15,4) NOT NULL,  -- KEY for POD eligibility
     blended_cost DECIMAL(15,4),
-    on_demand_cost DECIMAL(15,4),
     
-    -- Pricing Model
-    pricing_model VARCHAR(50),  -- 'OnDemand', 'Reserved', 'Spot', 'SavingsPlan'
-    reservation_arn VARCHAR(500),
-    savings_plan_arn VARCHAR(500),
+    -- Charge Classification (CRITICAL for discount analysis)
+    charge_type VARCHAR(100),  -- 'RIFee', 'usage', 'SPP_discount', 'distributor_discount', etc.
+    pricing_model VARCHAR(50), -- 'OnDemand', 'Reserved', 'Spot', 'SavingsPlan'
+    
+    -- Discount Tracking
+    list_cost DECIMAL(15,4),           -- Before discounts
+    discount_amount DECIMAL(15,4),     -- Total discount received
+    spp_discount DECIMAL(15,4),        -- Solution Provider Program discount
+    distributor_discount DECIMAL(15,4), -- Distributor discount
     
     -- Resource Identification
     resource_id VARCHAR(500),
@@ -218,8 +266,49 @@ CREATE INDEX idx_aws_costs_pod ON core.aws_costs(pod_eligible_cost, unblended_co
 CREATE INDEX idx_aws_costs_resource ON core.aws_costs USING GIN(resource_tags);
 ```
 
-#### 4. core.billing_aggregates
-Pre-calculated aggregates for BI performance.
+#### 4. core.invoice_reconciliation
+**Purpose**: Compare c_billing_bill totals vs account_move totals for accuracy
+**RAW Sources**: 
+- **PRIMARY**: `core.customer_invoices` (staging invoice totals)
+- **COMPARISON**: `raw.odoo_account_move` (final invoice totals for validation)
+**Business Intent**: Ensure staging invoices match final invoices for data integrity
+
+```sql
+CREATE TABLE core.invoice_reconciliation (
+    -- Identity
+    reconciliation_id SERIAL PRIMARY KEY,
+    
+    -- Source References
+    customer_invoice_id INTEGER REFERENCES core.customer_invoices(invoice_id),
+    account_move_id INTEGER,  -- reference to account_move
+    aws_account_id INTEGER REFERENCES core.aws_accounts(account_id),
+    
+    -- Amount Comparison
+    staging_total DECIMAL(15,2),    -- from c_billing_bill
+    final_total DECIMAL(15,2),      -- from account_move  
+    variance DECIMAL(15,2),         -- difference
+    variance_percentage DECIMAL(5,2),
+    
+    -- Status
+    reconciliation_status VARCHAR(50), -- 'matched', 'variance', 'missing'
+    reconciliation_date DATE,
+    
+    -- Metadata
+    notes TEXT,
+    _created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_reconciliation_customer ON core.invoice_reconciliation(customer_invoice_id);
+CREATE INDEX idx_reconciliation_account ON core.invoice_reconciliation(aws_account_id);
+CREATE INDEX idx_reconciliation_status ON core.invoice_reconciliation(reconciliation_status);
+```
+
+#### 5. core.billing_aggregates
+**Purpose**: Pre-calculated metrics for BI dashboard performance
+**RAW Sources**: 
+- **AGGREGATES FROM**: `core.customer_invoices` + `core.customer_invoice_lines` + `core.aws_costs`
+- **CALCULATIONS**: Monthly rollups, margin analysis, growth trends
+**Business Intent**: Fast BI queries for trends, margins, and growth analysis
 
 ```sql
 CREATE TABLE core.billing_aggregates (
@@ -321,110 +410,214 @@ CREATE INDEX idx_pod_eligibility_account ON core.pod_eligibility(account_id, eva
 CREATE INDEX idx_pod_eligibility_status ON core.pod_eligibility(is_eligible, evaluation_date);
 ```
 
-## Implementation Tasks
+## Corrected Implementation Plan
 
-### Database Infrastructure Tasks (Add to database-infrastructure spec)
+### Phase A: Verify Existing RAW Data (No Code Changes)
+**Verification Only - Billing RAW Tables Already Exist**
 
-#### Task 8.1: Create CORE Billing Schema Tables
-- **Files**: scripts/02-database/12_create_billing_tables.py
-- **Description**: Create normalized billing tables in CORE schema
-- **Tables to create**:
-  - core.billing_invoices
-  - core.billing_invoice_lines
-  - core.aws_costs
-  - core.billing_aggregates
-  - core.pod_eligibility
-- **Prerequisites**: Task 2.4 (CORE schema exists)
+1. **Confirm Billing Tables**: The following tables already exist in RAW schema:
+   - raw.odoo_c_billing_bill  
+   - raw.odoo_c_billing_bill_line
+   - raw.odoo_c_billing_internal_cur
+   - raw.odoo_account_move
+   - raw.odoo_account_move_line
 
-#### Task 8.2: Create Billing Indexes and Constraints
-- **Files**: scripts/02-database/13_create_billing_indexes.py
-- **Description**: Create performance indexes and referential integrity
-- **Actions**:
-  - Add foreign key constraints
-  - Create covering indexes for common queries
-  - Add check constraints for data validation
-- **Prerequisites**: Task 8.1
+2. **Populate Data**: Use existing extraction scripts to populate billing data
 
-#### Task 8.3: Create Billing Views and Functions
-- **Files**: scripts/02-database/14_create_billing_views.py
-- **Description**: Create materialized views and helper functions
-- **Views to create**:
-  - Monthly revenue summary view
-  - Customer margin analysis view
-  - POD eligibility dashboard view
-  - Service usage trends view
-- **Prerequisites**: Task 8.1
+### Phase B: Update Core Platform Services Spec 
+**Replace/enhance existing tasks in core-platform-services spec**
 
-### Core Platform Services Tasks (Add to core-platform-services spec)
+#### **Enhanced Task 3.1**: Billing Data Normalizer (ALREADY COMPLETED - ENHANCE)
+- **Current File**: backend/services/10-billing/normalizer.py (already exists)
+- **Current Scope**: Transforms RAW billing to core.billing_summary, core.billing_line_items, core.billing_quality_log (3 tables)
+- **Enhancement Needed**: Extend to support 6 new CORE billing tables (customer_invoices, customer_invoice_lines, aws_costs, invoice_reconciliation, billing_aggregates, pod_eligibility)
+- **Specific Changes Required**:
+  - Add normalization methods for 6 new CORE tables
+  - Update incremental processing to handle new table structures
+  - Extend data quality validation for POD eligibility rules
+  - Add customer/invoice-level aggregation (currently only does spend summaries)
+- **Status**: ✅ COMPLETED - ready for enhancement
 
-#### Task 3.1: Implement Billing Data Extraction
-- **Files**: scripts/03-data/14_extract_billing_data.py
-- **Description**: Extract billing data from Odoo to RAW schema
-- **Tables to extract**:
-  - c_billing_bill → raw.odoo_c_billing_bill
-  - c_billing_bill_line → raw.odoo_c_billing_bill_line
-  - c_billing_internal_cur → raw.odoo_c_billing_internal_cur
-- **Prerequisites**: Task 4.3 (Odoo extraction working)
+#### **Enhanced Task 3.2**: Create CORE Billing Schema (REPLACE EXISTING)
+- **Primary File**: scripts/02-database/12_create_billing_core_tables.py  
+- **Description**: Create 6 CORE billing tables in existing CORE schema (customer_invoices, customer_invoice_lines, aws_costs, invoice_reconciliation, billing_aggregates, pod_eligibility)
+- **Implementation Guide**: See billing_normalization_plan.md "CORE Schema Design" section with complete CREATE TABLE statements
+- **Prerequisites**: Enhanced Task 3.1
+- **REPLACES**: Existing Task 3.2 (Spend Analysis Engine) in core-platform-services spec
 
-#### Task 3.2: Create Invoice Normalization Service
-- **Files**: backend/services/08-billing/invoice_normalizer.py
-- **Description**: Transform raw billing data to normalized invoices
-- **Transformations**:
-  - Join c_billing_bill with res_partner for names
-  - Map to core.billing_invoices
-  - Process line items to core.billing_invoice_lines
-  - Calculate margins and totals
-- **Prerequisites**: Task 3.1, Task 8.1
+#### **Enhanced Task 3.3**: Billing Data Normalization Pipeline (REPLACE EXISTING)
+- **Primary File**: scripts/03-data/14_normalize_billing_pipeline.py
+- **Secondary File**: backend/services/10-billing/spend_analyzer.py (API integration)
+- **Description**: Transform existing RAW billing data to CORE schema with spend analysis integration
+- **Implementation Guide**: See billing_normalization_plan.md "Appendix: Field Mappings" and "Key Business Rules" sections
+- **Prerequisites**: Enhanced Task 3.2
+- **REPLACES**: Existing Task 3.3 (Billing API) in core-platform-services spec
 
-#### Task 3.3: Create AWS Cost Normalization Service
-- **Files**: backend/services/08-billing/cost_normalizer.py
-- **Description**: Process AWS CUR data for cost tracking
-- **Processing**:
-  - Parse c_billing_internal_cur records
-  - Map to AWS service taxonomy
-  - Calculate unblended costs by account
-  - Store in core.aws_costs
-- **Prerequisites**: Task 3.1, Task 8.1
+#### **New Task 3.4**: Billing Quality Validation and API
+- **Primary File**: scripts/03-data/15_validate_billing_normalization.py
+- **Secondary File**: backend/services/10-billing/api.py (API endpoints)
+- **Description**: Validate billing normalization accuracy and create API endpoints for CORE billing tables
+- **Implementation Guide**: See billing_normalization_plan.md "Post-Implementation Review Process" and "Data Review and Validation Plan" sections
+- **Prerequisites**: Enhanced Task 3.3
+- **ADDS**: New task to core-platform-services spec
 
-#### Task 3.4: Create POD Eligibility Calculator
-- **Files**: backend/services/09-pod/eligibility_calculator.py
-- **Description**: Determine POD eligibility based on AWS spend
-- **Logic**:
-  - Analyze account AWS spend patterns
-  - Apply business rules for eligibility
-  - Calculate confidence scores
-  - Generate eligibility records
-- **Prerequisites**: Task 3.3, Task 8.1
+### Corrected Task Sequencing
 
-#### Task 3.5: Create Billing Aggregation Service
-- **Files**: backend/services/08-billing/aggregator.py
-- **Description**: Generate pre-calculated aggregates for BI
-- **Aggregations**:
-  - Monthly revenue by account
-  - Service-level cost breakdowns
-  - Margin calculations
-  - Growth metrics
-- **Prerequisites**: Task 3.2, Task 3.3
+**Proper Integration with Existing Specs:**
+- **Core Platform Services** (Phase 3): Task 3.2 → 3.3 → 3.4 → 3.5 (billing pipeline)
+- **Database**: Use existing CORE schema - no new database infrastructure needed
+- **Scripts**: Follow scripts/03-data/ numbering (14_, 15_, 16_) per SCRIPT_REGISTRY.md
+- **Services**: Enhance existing backend/services/10-billing/ files
 
-#### Task 3.6: Create Billing API Endpoints
-- **Files**: backend/services/06-api/billing_routes.py
-- **Description**: REST API for billing data access
-- **Endpoints**:
-  - GET /api/v1/billing/invoices
-  - GET /api/v1/billing/costs
-  - GET /api/v1/billing/pod-eligibility
-  - GET /api/v1/billing/aggregates
-- **Prerequisites**: Task 3.2, Task 3.3, Task 3.4
+## Data Review and Validation Plan
 
-#### Task 3.7: Create Billing Data Quality Checks
-- **Files**: scripts/03-data/15_validate_billing_quality.py
-- **Description**: Validate billing data integrity
-- **Validations**:
-  - Invoice/line item consistency
-  - Cost data completeness
-  - Margin calculation accuracy
-  - POD eligibility logic verification
-- **Prerequisites**: Task 3.2, Task 3.3
+### Post-Implementation Review Process
+
+After completing Database Infrastructure Tasks 8.1-8.3 (billing table creation), conduct detailed review:
+
+#### 1. **Table Structure Validation**
+```sql
+-- Verify all 5 billing tables created successfully
+SELECT table_name, column_count 
+FROM (
+    SELECT schemaname, tablename as table_name, 
+           COUNT(*) as column_count
+    FROM pg_stats 
+    WHERE schemaname = 'core' 
+    AND tablename IN ('customer_invoices', 'customer_invoice_lines', 
+                      'aws_costs', 'invoice_reconciliation', 'billing_aggregates')
+    GROUP BY schemaname, tablename
+) t;
+
+-- Check foreign key constraints
+SELECT conname, conrelid::regclass, confrelid::regclass
+FROM pg_constraint 
+WHERE contype = 'f' 
+AND conrelid::regclass::text LIKE 'core.%billing%';
+```
+
+#### 2. **Source Data Mapping Verification**
+Before normalization services (Tasks 3.1-3.7), validate RAW source data:
+
+```sql
+-- Check RAW billing table counts
+SELECT 'c_billing_bill' as table_name, COUNT(*) as record_count FROM raw.odoo_c_billing_bill
+UNION ALL
+SELECT 'c_billing_bill_line', COUNT(*) FROM raw.odoo_c_billing_bill_line  
+UNION ALL
+SELECT 'c_billing_internal_cur', COUNT(*) FROM raw.odoo_c_billing_internal_cur
+UNION ALL
+SELECT 'account_move', COUNT(*) FROM raw.odoo_account_move;
+
+-- Validate key field mapping
+SELECT 
+    partner_id,
+    name as invoice_number,
+    amount_total,
+    date_invoice,
+    state
+FROM raw.odoo_c_billing_bill 
+LIMIT 5;
+```
+
+#### 3. **Post-Normalization Data Quality Review**
+After normalization services complete, perform comprehensive validation:
+
+```sql
+-- Verify record counts match expectations
+SELECT 
+    'customer_invoices' as table_name, 
+    COUNT(*) as core_count,
+    (SELECT COUNT(*) FROM raw.odoo_c_billing_bill) as raw_count,
+    ROUND(COUNT(*)::decimal / (SELECT COUNT(*) FROM raw.odoo_c_billing_bill) * 100, 2) as match_percentage
+FROM core.customer_invoices;
+
+-- Check margin calculations
+SELECT 
+    ci.invoice_number,
+    ci.total_amount as customer_revenue,
+    SUM(ac.unblended_cost) as aws_costs,
+    ci.total_amount - COALESCE(SUM(ac.unblended_cost), 0) as calculated_margin
+FROM core.customer_invoices ci
+LEFT JOIN core.aws_costs ac ON ci.aws_account_id = ac.aws_account_id 
+    AND DATE_TRUNC('month', ci.invoice_date) = DATE_TRUNC('month', ac.usage_date)
+GROUP BY ci.invoice_id, ci.invoice_number, ci.total_amount
+LIMIT 10;
+
+-- Validate charge_type distribution
+SELECT 
+    charge_type,
+    COUNT(*) as record_count,
+    SUM(unblended_cost) as total_cost,
+    ROUND(AVG(unblended_cost), 2) as avg_cost
+FROM core.aws_costs 
+GROUP BY charge_type 
+ORDER BY total_cost DESC;
+```
+
+#### 4. **Business Logic Validation**
+Test critical business calculations:
+
+```sql
+-- POD Eligibility Validation
+SELECT 
+    aws_account_id,
+    SUM(unblended_cost) as monthly_spend,
+    COUNT(DISTINCT service_code) as service_diversity,
+    CASE 
+        WHEN SUM(unblended_cost) > 1000 AND COUNT(DISTINCT service_code) >= 3 
+        THEN 'POD_ELIGIBLE' 
+        ELSE 'NOT_ELIGIBLE' 
+    END as pod_status
+FROM core.aws_costs 
+WHERE billing_period = '2024-08'  -- Example month
+GROUP BY aws_account_id
+ORDER BY monthly_spend DESC;
+
+-- Invoice Reconciliation Check
+SELECT 
+    reconciliation_status,
+    COUNT(*) as invoice_count,
+    AVG(ABS(variance_percentage)) as avg_variance_pct,
+    MAX(ABS(variance_percentage)) as max_variance_pct
+FROM core.invoice_reconciliation
+GROUP BY reconciliation_status;
+```
+
+#### 5. **Performance Validation**
+Test query performance with indexes:
+
+```sql
+-- Index usage verification
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT ci.*, ac.total_cost 
+FROM core.customer_invoices ci
+JOIN (
+    SELECT aws_account_id, SUM(unblended_cost) as total_cost
+    FROM core.aws_costs 
+    WHERE billing_period = '2024-08'
+    GROUP BY aws_account_id
+) ac ON ci.aws_account_id = ac.aws_account_id
+WHERE ci.invoice_date >= '2024-08-01';
+```
+
+### Review Criteria for Approval
+
+**✅ PASS Criteria:**
+- All 5 CORE billing tables created with correct column counts
+- >95% record matching between RAW and CORE counts  
+- Margin calculations within expected ranges (positive margins for most accounts)
+- charge_type distribution shows expected discount types
+- POD eligibility logic identifies realistic candidate accounts
+- Query performance <500ms for typical BI queries
+
+**❌ FAIL Criteria:**
+- Missing tables or columns in CORE schema
+- <90% record matching (indicates transformation errors)
+- Negative margins for majority of accounts (calculation errors)  
+- All charge_types showing as 'usage' (parsing errors)
+- No POD eligible accounts found (threshold errors)
+- Query performance >2 seconds for basic queries
 
 ## Data Flow Architecture
 
