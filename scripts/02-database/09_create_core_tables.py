@@ -115,15 +115,12 @@ def create_opportunities_table(cursor):
         aws_status VARCHAR(50),
         partner_acceptance_status VARCHAR(50),
         
-        -- BGE Embedding fields (Task 2.6)
+        -- BGE Embedding support fields (embeddings stored in SEARCH schema)
         combined_text TEXT,
         identity_text TEXT,
         context_text TEXT,
         identity_hash VARCHAR(64),
         context_hash VARCHAR(64),
-        identity_embedding JSONB,
-        context_embedding JSONB,
-        embedding_generated_at TIMESTAMP,
         
         -- Constraints
         UNIQUE(source_system, source_id)
@@ -137,7 +134,6 @@ def create_opportunities_table(cursor):
     CREATE INDEX idx_opportunities_pod_ownership ON core.opportunities(opportunity_ownership);
     CREATE INDEX idx_opportunities_identity_hash ON core.opportunities(identity_hash);
     CREATE INDEX idx_opportunities_context_hash ON core.opportunities(context_hash);
-    CREATE INDEX idx_opportunities_embedding_generated ON core.opportunities(embedding_generated_at);
     
     -- Add comments
     COMMENT ON TABLE core.opportunities IS 'Normalized opportunities from Odoo CRM leads and APN opportunities';
@@ -146,8 +142,8 @@ def create_opportunities_table(cursor):
     COMMENT ON COLUMN core.opportunities.context_text IS 'Rich business context for semantic understanding';
     COMMENT ON COLUMN core.opportunities.opportunity_ownership IS 'POD eligibility: Partner Originated vs AWS Originated';
     COMMENT ON COLUMN core.opportunities.aws_status IS 'AWS internal opportunity status tracking';
-    COMMENT ON COLUMN core.opportunities.identity_embedding IS 'BGE-M3 384-dim identity embedding vector';
-    COMMENT ON COLUMN core.opportunities.context_embedding IS 'BGE-M3 384-dim context embedding vector';
+    COMMENT ON COLUMN core.opportunities.identity_hash IS 'SHA-256 hash for identity text change detection';
+    COMMENT ON COLUMN core.opportunities.context_hash IS 'SHA-256 hash for context text change detection';
     """
     
     cursor.execute(sql_statement)
