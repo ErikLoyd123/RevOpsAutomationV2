@@ -164,7 +164,7 @@ def create_aws_costs_table(db_manager):
         
         -- Company Information - resolved from company_id foreign key
         company_id INTEGER,              -- FROM raw.odoo_c_billing_internal_cur.company_id (preserved) 
-        company_name VARCHAR(255),       -- RESOLVED: company name from company_id lookup
+        customer_name VARCHAR(255),      -- RESOLVED: customer name from account mapping or company_id lookup
         
         -- Account Information - resolved from account_id foreign key
         account_id INTEGER,              -- FROM raw.odoo_c_billing_internal_cur.account_id (preserved)
@@ -353,6 +353,66 @@ def create_pod_eligibility_table(db_manager):
     
     return create_sql, indexes_sql
 
+def create_aws_discounts_table(db_manager):
+    """Create core.aws_discounts table for merged SPP and Ingram discount data"""
+    create_sql = """
+    CREATE TABLE IF NOT EXISTS core.aws_discounts (
+        -- Identity
+        discount_id SERIAL PRIMARY KEY,
+        
+        -- Source Tracking
+        source_system VARCHAR(50) NOT NULL,  -- 'spp' or 'ingram'
+        source_id INTEGER NOT NULL,          -- Original ID from raw table
+        
+        -- Customer and Account Information (resolved from aws_accounts)
+        customer_name VARCHAR(255),          -- Customer name using same logic as aws_costs
+        payer_account_id VARCHAR(20),        -- AWS payer account ID (resolved)
+        payer_account_name VARCHAR(255),     -- Payer account name (resolved)
+        account_id VARCHAR(20),              -- AWS linked account ID (resolved)
+        account_name VARCHAR(255),           -- Account name (resolved)
+        
+        -- Financial Information  
+        total_eligible_revenue DECIMAL(15,2), -- total_eligible_revenue (SPP) | sum (Ingram)
+        period_date DATE,                     -- Period date for the discount record
+        
+        -- Normalized Discount Types (columns for both SPP and Ingram)
+        base_discount DECIMAL(15,2),         -- Base or Base Tech Discount (SPP) | base + tech_linked (Ingram)
+        grow_discount DECIMAL(15,2),         -- Grow Discount (SPP only initially)
+        internal_discount DECIMAL(15,2),     -- Internal Discount (SPP) | internal (Ingram)
+        pod_discount DECIMAL(15,2),          -- POD (SPP) | partner_originated (Ingram)
+        pgd_discount DECIMAL(15,2),          -- PGD Discount (SPP only initially)
+        neur_discount DECIMAL(15,2),         -- NEUR Discount (SPP) | no_eur (Ingram)
+        support_discount DECIMAL(15,2),      -- Support (SPP) | support (Ingram)
+        
+        -- Ingram-specific discount types
+        net_new_business DECIMAL(15,2),      -- net_new_business (Ingram only)
+        share_shift DECIMAL(15,2),           -- share_shift (Ingram only)
+        exception_discount DECIMAL(15,2),    -- exception (Ingram only)
+        psp_plus DECIMAL(15,2),              -- psp_plus (Ingram only)
+        null_discount DECIMAL(15,2),         -- Unmapped/null discounts
+        
+        -- Total Discount
+        total_discount DECIMAL(15,2),        -- total_discount_earned (SPP) | total_discount (Ingram)
+        
+        -- Metadata
+        _source_system VARCHAR(50) DEFAULT 'merged_discount_data',
+        _ingested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        _sync_batch_id UUID
+    );
+    """
+    
+    indexes_sql = [
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_customer ON core.aws_discounts(customer_name);",
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_account ON core.aws_discounts(account_id, period_date);",
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_payer ON core.aws_discounts(payer_account_id, period_date);",
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_source ON core.aws_discounts(source_system, source_id);",
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_period ON core.aws_discounts(period_date);",
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_total ON core.aws_discounts(total_discount);",
+        "CREATE INDEX IF NOT EXISTS idx_aws_discounts_pod ON core.aws_discounts(pod_discount);"
+    ]
+    
+    return create_sql, indexes_sql
+
 def create_table_comments(db_manager):
     """Add table and column comments for documentation"""
     comments_sql = [
@@ -387,7 +447,13 @@ def create_table_comments(db_manager):
         "COMMENT ON TABLE core.pod_eligibility IS 'Track POD eligibility determinations and calculations';",
         "COMMENT ON COLUMN core.pod_eligibility.eligibility_score IS 'Confidence score 0-100 for eligibility determination';",
         "COMMENT ON COLUMN core.pod_eligibility.qualifying_services IS 'JSON list of AWS services that support eligibility';",
-        "COMMENT ON COLUMN core.pod_eligibility.disqualifying_factors IS 'JSON list of reasons for ineligibility';"
+        "COMMENT ON COLUMN core.pod_eligibility.disqualifying_factors IS 'JSON list of reasons for ineligibility';",
+        
+        # aws_discounts comments
+        "COMMENT ON TABLE core.aws_discounts IS 'Merged and normalized discount data from SPP and Ingram billing sources';",
+        "COMMENT ON COLUMN core.aws_discounts.source_system IS 'Source system: spp (from odoo_c_billing_spp_bill) or ingram (from odoo_c_billing_ingram_bill)';",
+        "COMMENT ON COLUMN core.aws_discounts.base_discount IS 'Base or Base Tech Discount (SPP) combined with base + tech_linked (Ingram)';",
+        "COMMENT ON COLUMN core.aws_discounts.pod_discount IS 'Partner Originated Discount from both SPP and Ingram sources';"
     ]
     
     return comments_sql
@@ -409,7 +475,8 @@ def main():
             ("aws_costs", create_aws_costs_table),
             ("invoice_reconciliation", create_invoice_reconciliation_table),
             ("billing_aggregates", create_billing_aggregates_table),
-            ("pod_eligibility", create_pod_eligibility_table)
+            ("pod_eligibility", create_pod_eligibility_table),
+            ("aws_discounts", create_aws_discounts_table)
         ]
         
         created_tables = []
@@ -467,7 +534,7 @@ def main():
                 FROM information_schema.tables 
                 WHERE table_schema = 'core' 
                 AND table_name IN ('customer_billing', 'customer_billing_line', 'aws_costs', 
-                                   'invoice_reconciliation', 'billing_aggregates', 'pod_eligibility')
+                                   'invoice_reconciliation', 'billing_aggregates', 'pod_eligibility', 'aws_discounts')
                 ORDER BY table_name
             """)
             existing_tables = [row[0] for row in cursor.fetchall()]
@@ -478,7 +545,7 @@ def main():
                 FROM pg_indexes 
                 WHERE schemaname = 'core' 
                 AND tablename IN ('customer_billing', 'customer_billing_line', 'aws_costs', 
-                                  'invoice_reconciliation', 'billing_aggregates', 'pod_eligibility')
+                                  'invoice_reconciliation', 'billing_aggregates', 'pod_eligibility', 'aws_discounts')
             """)
             total_indexes = cursor.fetchone()[0]
         
@@ -486,19 +553,19 @@ def main():
         logger.info("\n" + "="*60)
         logger.info("CORE BILLING TABLES CREATION SUMMARY")
         logger.info("="*60)
-        logger.info(f"Tables Created: {len(created_tables)}/6")
+        logger.info(f"Tables Created: {len(created_tables)}/7")
         logger.info(f"Tables: {', '.join(created_tables)}")
         logger.info(f"Indexes Created: {created_indexes}")
         logger.info(f"Total Indexes in Schema: {total_indexes}")
-        logger.info(f"Status: {'✅ SUCCESS' if len(created_tables) == 6 else '❌ PARTIAL'}")
+        logger.info(f"Status: {'✅ SUCCESS' if len(created_tables) == 7 else '❌ PARTIAL'}")
         logger.info("="*60)
         
-        if len(created_tables) == 6:
-            logger.info("🎉 All 6 CORE billing tables created successfully!")
+        if len(created_tables) == 7:
+            logger.info("🎉 All 7 CORE billing tables created successfully!")
             logger.info("Ready for billing data normalization pipeline")
             return True
         else:
-            logger.error(f"❌ Only {len(created_tables)}/6 tables created")
+            logger.error(f"❌ Only {len(created_tables)}/7 tables created")
             return False
             
     except Exception as e:

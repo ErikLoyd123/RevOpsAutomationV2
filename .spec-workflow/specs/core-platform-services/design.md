@@ -2,7 +2,11 @@
 
 ## Overview
 
-The Core Platform Services design implements a microservices architecture that builds upon the database infrastructure foundation to provide FastAPI-based services, GPU-accelerated BGE-M3 embeddings, intelligent opportunity matching, and a React frontend interface. The system follows event-driven patterns with clear service boundaries, leveraging the existing database schemas while adding sophisticated business logic and AI-powered matching capabilities.
+> **CURRENT PHASE: BGE M3 Opportunity Matching Engine**
+> 
+> This design document reflects the current implementation focus on BGE-M3 opportunity matching. The full microservices architecture described here represents the long-term vision, with billing normalization and POD rules components deferred to subsequent phases.
+
+The Core Platform Services design implements a microservices architecture that builds upon the database infrastructure foundation to provide FastAPI-based services and GPU-accelerated BGE-M3 embeddings for intelligent opportunity matching. **The current phase focuses exclusively on building the opportunity matching engine** using semantic similarity to match APN and Odoo opportunities. Additional services including billing normalization, POD rules engine, and React frontend are planned for future phases.
 
 ## Steering Document Alignment
 
@@ -57,9 +61,12 @@ graph TD
         API[API Gateway Service]
     end
     
-    subgraph "Core Services Layer"
+    subgraph "Core Services Layer - PHASE 1"
         EMBED[BGE Embeddings Service]
         MATCH[Opportunity Matching Service]
+    end
+    
+    subgraph "Core Services Layer - PHASE 2 (Deferred)"
         RULES[POD Rules Engine]
         BILL[Billing Normalization Service]
     end
@@ -97,11 +104,21 @@ graph TD
 ### BGE Embeddings Service
 - **Purpose:** Generate semantic embeddings using GPU-accelerated BGE-M3 model
 - **Interfaces:** 
-  - `POST /api/v1/embeddings/generate` - Generate embeddings for text input
+  - `POST /api/v1/embeddings/generate` - Generate embeddings for text input (batch support)
   - `GET /api/v1/embeddings/similarity` - Calculate similarity between embeddings
-  - `GET /api/v1/embeddings/health` - GPU and model health status
-- **Dependencies:** NVIDIA RTX 3070 Ti, BGE-M3 container, SEARCH schema
+  - `GET /api/v1/embeddings/health` - GPU and model health status with memory usage
+  - `GET /api/v1/embeddings/model/info` - Model version and configuration details
+- **Dependencies:** NVIDIA RTX 3070 Ti, BGE-M3 container with GPU passthrough, SEARCH schema
 - **Location:** `/backend/services/07-embeddings/`
+- **Container Configuration:**
+  - Base image: `nvidia/cuda:11.8-devel-ubuntu20.04` with PyTorch GPU
+  - Model cache: `/models/bge-m3` volume mount for model weights
+  - GPU access: `--gpus all` with NVIDIA Docker runtime
+  - Memory limits: 6GB container limit for RTX 3070 Ti (8GB VRAM)
+- **Performance Targets:** 
+  - 32 embeddings per 500ms batch on RTX 3070 Ti
+  - 1024-dimensional vectors (BGE-M3 specification)
+  - Automatic fallback to CPU if GPU unavailable
 - **Reuses:** Database connection manager, configuration module
 
 ### Opportunity Matching Service
@@ -114,7 +131,9 @@ graph TD
 - **Location:** `/backend/services/08-matching/`
 - **Reuses:** Database connection manager, existing CORE opportunity tables
 
-### POD Rules Engine
+### POD Rules Engine **[PHASE 2 - DEFERRED]**
+> **STATUS: DEFERRED** - POD rules engine implementation is deferred until opportunity matching provides the foundation data needed for effective rule evaluation.
+
 - **Purpose:** Evaluate opportunities against configurable POD eligibility rules
 - **Interfaces:**
   - `POST /api/v1/rules/pod/evaluate` - Evaluate opportunity against POD rules
@@ -124,7 +143,9 @@ graph TD
 - **Location:** `/backend/services/09-rules/`
 - **Reuses:** Database connection manager, OPS schema for decision tracking
 
-### Billing Normalization Service
+### Billing Normalization Service **[PHASE 2 - DEFERRED]**
+> **STATUS: DEFERRED** - Billing normalization tables have been successfully implemented and are operational. Service implementation is deferred until opportunity matching is complete.
+
 - **Purpose:** Transform RAW billing data into normalized cost analysis tables
 - **Interfaces:**
   - `POST /api/v1/billing/normalize` - Trigger billing data normalization
@@ -154,6 +175,61 @@ graph TD
 - **Dependencies:** API Gateway Service
 - **Location:** `/frontend/`
 - **Reuses:** Existing project structure, styling patterns
+
+## Data Architecture Separation
+
+### CORE Schema (Business Data)
+The CORE schema contains normalized business entities and maintains clean separation from vector operations:
+
+- **core.opportunities**: Primary business opportunity data from Odoo and APN
+- **identity_text**: Generated text combining company_name + company_domain for entity matching
+- **context_text**: Generated text combining opportunity descriptions, use cases, and business context
+- **identity_hash**: SHA-256 hash of identity_text for change detection (avoids re-embedding)
+- **context_hash**: SHA-256 hash of context_text for change detection
+
+### SEARCH Schema (Vector Operations)
+The SEARCH schema is optimized for vector similarity operations and contains denormalized metadata for performance:
+
+```sql
+-- BGE-M3 embeddings for opportunity matching
+CREATE TABLE search.embeddings_opportunities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    opportunity_id INTEGER NOT NULL,  -- References core.opportunities.opportunity_id
+    source_system VARCHAR(50) NOT NULL,  -- 'odoo' or 'apn'
+    source_id VARCHAR(255) NOT NULL,     -- Original system identifier
+    embedding_type VARCHAR(50) NOT NULL, -- 'identity' or 'context'
+    
+    -- BGE-M3 vector storage (1024 dimensions)
+    embed_vector_json JSONB,  -- JSON array of 1024 floats
+    
+    -- Denormalized metadata for fast filtering
+    identity_text TEXT,
+    context_text TEXT,
+    text_hash VARCHAR(64),
+    company_name VARCHAR(500),
+    company_domain VARCHAR(255),
+    
+    -- Operational tracking
+    model_version VARCHAR(50) DEFAULT 'bge-m3-v1.0',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Performance constraints
+    UNIQUE(opportunity_id, embedding_type),  -- One identity + one context per opportunity
+    INDEX ON opportunity_id,
+    INDEX ON source_system,
+    INDEX ON embedding_type,
+    INDEX ON text_hash,  -- Fast change detection
+    INDEX ON company_domain  -- Company matching
+);
+```
+
+**Key Design Decisions:**
+- **Separation of Concerns**: Business logic in CORE, vector operations in SEARCH
+- **Denormalized Metadata**: Company info duplicated in SEARCH for query performance
+- **Dual Embedding Strategy**: Identity embeddings for entity matching, context embeddings for semantic matching
+- **Change Detection**: Hash-based system prevents unnecessary re-embedding
+- **pgvector Ready**: Structure supports future pgvector VECTOR columns alongside current JSONB
 
 ## Data Models
 

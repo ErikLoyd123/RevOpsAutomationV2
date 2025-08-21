@@ -166,6 +166,11 @@ class OdooDataLoader:
                 'description': 'SPP billing records',
                 'batch_size': 1000
             },
+            'c_billing_ingram_bill': {
+                'fields': 27,
+                'description': 'Ingram distributor billing records',
+                'batch_size': 1000
+            },
             'product_template': {
                 'fields': 107,
                 'description': 'Product catalog templates',

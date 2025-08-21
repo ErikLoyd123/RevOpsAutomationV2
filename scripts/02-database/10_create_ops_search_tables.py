@@ -386,69 +386,74 @@ def create_normalization_jobs_table(cursor):
     cursor.execute(sql_statement)
     return "ops.normalization_jobs"
 
-def create_embeddings_table(cursor, pgvector_available=False):
-    """Create the search.embeddings table for BGE vector embeddings."""
+def create_embeddings_opportunities_table(cursor, pgvector_available=False):
+    """Create the search.embeddings_opportunities table for BGE vector embeddings."""
     
     # Base table structure
     base_sql = """
-    CREATE TABLE search.embeddings (
-        -- Primary key and identifiers
+    CREATE TABLE search.embeddings_opportunities (
+        -- Primary Keys and References
         embedding_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        opportunity_id UUID NOT NULL,
         
-        -- Source record information
-        source_schema VARCHAR(50) NOT NULL DEFAULT 'core',
-        source_table VARCHAR(100) NOT NULL,
-        source_id VARCHAR(500) NOT NULL,
-        source_record_version INTEGER DEFAULT 1,
+        -- Source System Information  
+        source_system VARCHAR(20) NOT NULL CHECK (source_system IN ('odoo', 'apn')),
+        source_id VARCHAR(255) NOT NULL,
         
-        -- Embedding configuration
-        embedding_type VARCHAR(50) NOT NULL CHECK (embedding_type IN (
-            'identity', 'context', 'description', 'combined', 'title'
-        )),
+        -- Embedding Types
+        embedding_type VARCHAR(50) NOT NULL CHECK (embedding_type IN ('identity', 'context')),
         embedding_model VARCHAR(100) NOT NULL DEFAULT 'BGE-M3',
         embedding_version VARCHAR(20) DEFAULT '1.0',"""
     
-    # Vector column - depends on pgvector availability
+    # Vector column - depends on pgvector availability  
     if pgvector_available:
         vector_sql = """
         
-        -- BGE-M3 vector embeddings (384 dimensions for BGE-small-en-v1.5, 1024 for BGE-M3)
-        embed_vector vector(384),  -- Using 384 dimensions for BGE embeddings
+        -- BGE-M3 vector embeddings (1024 dimensions for BGE-M3)
+        embed_vector VECTOR(1024),  -- Updated to 1024 dimensions for proper BGE-M3
         vector_norm DECIMAL(10,6),"""
         vector_constraint = "CHECK (embed_vector IS NOT NULL)"
     else:
         vector_sql = """
         
-        -- BGE-M3 vector embeddings (stored as text array when pgvector not available)
-        embed_vector_json TEXT,  -- JSON array representation of 384-dimensional vector
+        -- BGE-M3 vector embeddings (stored as JSON when pgvector not available)
+        embed_vector_json TEXT,  -- JSON array representation of 1024-dimensional vector
         vector_norm DECIMAL(10,6),"""
         vector_constraint = "CHECK (embed_vector_json IS NOT NULL)"
     
-    # Rest of table structure
+    # Rest of table structure with broken-out metadata fields
     rest_sql = f"""
         
-        -- Source text and metadata
-        text_content TEXT NOT NULL,
-        text_hash VARCHAR(64) GENERATED ALWAYS AS (encode(sha256(text_content::bytea), 'hex')) STORED,
-        text_length INTEGER GENERATED ALWAYS AS (length(text_content)) STORED,
-        language VARCHAR(10) DEFAULT 'en',
+        -- Text Content (Denormalized for Readability)
+        identity_text TEXT,
+        context_text TEXT,
+        text_hash VARCHAR(64) NOT NULL,
         
-        -- Processing metadata
-        metadata JSONB,
-        processing_config JSONB,
+        -- Broken-out Metadata Fields (instead of generic JSONB)
+        company_name VARCHAR(500),
+        company_domain VARCHAR(255),
+        opportunity_name VARCHAR(500),
+        opportunity_stage VARCHAR(100),
+        opportunity_value DECIMAL(15,2),
+        opportunity_currency VARCHAR(3) DEFAULT 'USD',
+        salesperson_name VARCHAR(255),
+        partner_name VARCHAR(255),
         
-        -- Quality and confidence metrics
+        -- Quality and Processing
         embedding_quality_score DECIMAL(5,4),
-        confidence_score DECIMAL(5,4),
+        processing_time_ms INTEGER,
         
         -- Timestamps
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        expires_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         
         -- Constraints
-        UNIQUE(source_schema, source_table, source_id, embedding_type),
-        CHECK (text_length > 0),
+        UNIQUE(opportunity_id, embedding_type),
+        CHECK (
+            (embedding_type = 'identity' AND identity_text IS NOT NULL) OR
+            (embedding_type = 'context' AND context_text IS NOT NULL)
+        ),
+        CHECK (embedding_quality_score IS NULL OR embedding_quality_score BETWEEN 0 AND 1),
         {vector_constraint}
     );"""
     
@@ -460,31 +465,36 @@ def create_embeddings_table(cursor, pgvector_available=False):
     if pgvector_available:
         cursor.execute("""
         -- HNSW index for fast cosine similarity search
-        CREATE INDEX idx_embeddings_vector_cosine ON search.embeddings 
+        CREATE INDEX idx_embeddings_opportunities_vector_cosine ON search.embeddings_opportunities 
         USING hnsw (embed_vector vector_cosine_ops)
         WITH (m = 16, ef_construction = 64);
         """)
         
         cursor.execute("""
-        -- Additional HNSW indexes for different distance metrics
-        CREATE INDEX idx_embeddings_vector_l2 ON search.embeddings 
-        USING hnsw (embed_vector vector_l2_ops)
-        WITH (m = 16, ef_construction = 64);
+        -- IVFFlat index for alternative similarity search
+        CREATE INDEX idx_embeddings_opportunities_vector_ivfflat ON search.embeddings_opportunities 
+        USING ivfflat (embed_vector vector_cosine_ops)
+        WITH (lists = 100);
         """)
     else:
         # Create a regular index on vector JSON for basic filtering when pgvector not available
         cursor.execute("""
-        CREATE INDEX idx_embeddings_vector_json ON search.embeddings(embed_vector_json);
+        CREATE INDEX idx_embeddings_opportunities_vector_json ON search.embeddings_opportunities(embed_vector_json);
         """)
     
-    # Standard B-tree indexes for filtering
+    # Standard B-tree indexes for filtering and opportunity-specific queries
     cursor.execute("""
-    CREATE INDEX idx_embeddings_source ON search.embeddings(source_schema, source_table, source_id);
-    CREATE INDEX idx_embeddings_type ON search.embeddings(embedding_type);
-    CREATE INDEX idx_embeddings_model ON search.embeddings(embedding_model);
-    CREATE INDEX idx_embeddings_text_hash ON search.embeddings(text_hash);
-    CREATE INDEX idx_embeddings_created_at ON search.embeddings(created_at);
-    CREATE INDEX idx_embeddings_quality ON search.embeddings(embedding_quality_score);
+    CREATE INDEX idx_embeddings_opportunities_opportunity_id ON search.embeddings_opportunities(opportunity_id);
+    CREATE INDEX idx_embeddings_opportunities_source_system ON search.embeddings_opportunities(source_system);
+    CREATE INDEX idx_embeddings_opportunities_embedding_type ON search.embeddings_opportunities(embedding_type);
+    CREATE INDEX idx_embeddings_opportunities_company_name ON search.embeddings_opportunities(company_name);
+    CREATE INDEX idx_embeddings_opportunities_text_hash ON search.embeddings_opportunities(text_hash);
+    CREATE INDEX idx_embeddings_opportunities_created_at ON search.embeddings_opportunities(created_at);
+    CREATE INDEX idx_embeddings_opportunities_quality ON search.embeddings_opportunities(embedding_quality_score);
+    
+    -- Composite indexes for common queries
+    CREATE INDEX idx_embeddings_opportunities_source_type ON search.embeddings_opportunities(source_system, embedding_type);
+    CREATE INDEX idx_embeddings_opportunities_source_company ON search.embeddings_opportunities(source_system, company_name);
     """)
     
     # Add comments for documentation
@@ -777,7 +787,7 @@ def create_ops_search_tables():
                 print(f"     ⚠ Table 'search.embeddings' already exists - skipping")
                 search_tables_skipped += 1
             else:
-                create_embeddings_table(cursor, pgvector_available)
+                create_embeddings_opportunities_table(cursor, pgvector_available)
                 print(f"     ✓ Created table 'search.embeddings'")
                 search_tables_created += 1
         except psycopg2.Error as e:

@@ -2,7 +2,11 @@
 
 ## Introduction
 
-The Core Platform Services specification defines the advanced application layer that builds upon the database infrastructure foundation. This phase implements FastAPI microservices, BGE-M3 GPU-accelerated semantic matching, configurable rules engine for POD (Partner Originated Discount) automation, and a React frontend for testing and monitoring. The platform provides the complete application stack needed to automate POD opportunity identification and matching while maintaining extensibility for multiple customers and partner programs.
+> **CURRENT PHASE FOCUS:** BGE M3 Opportunity Matching Implementation
+> 
+> This specification has been restructured to focus on the core BGE-M3 opportunity matching engine first. Requirements 4 and 5 (billing and POD rules) have been deferred to ensure successful completion of the opportunity matching foundation before expanding to additional features.
+
+The Core Platform Services specification defines the advanced application layer that builds upon the database infrastructure foundation. **The current implementation phase focuses exclusively on BGE-M3 GPU-accelerated semantic matching for APN ↔ Odoo opportunity identification.** Additional features including billing normalization, POD rules engine, and React frontend are planned for subsequent phases after the matching engine is proven operational.
 
 ## Alignment with Product Vision
 
@@ -37,8 +41,34 @@ This platform directly supports Cloud303's goal of automating POD opportunity id
 2. IF GPU is unavailable THEN the system SHALL fall back to CPU processing with performance warnings
 3. WHEN generating embeddings THEN the service SHALL support both identity embeddings (company names) and context embeddings (descriptions)
 4. IF embedding generation fails THEN the system SHALL retry with exponential backoff and log detailed error information
-5. WHEN embeddings are generated THEN they SHALL be stored in the SEARCH schema with proper HNSW indexing for similarity queries
+5. WHEN embeddings are generated THEN they SHALL be stored in the SEARCH schema with proper indexing for similarity queries
 6. WHEN processing batches THEN the system SHALL optimize for RTX 3070 Ti memory constraints and processing capabilities
+
+### Requirement 2a: BGE Model Deployment Infrastructure
+
+**User Story:** As a deployment engineer, I want automated BGE-M3 model deployment, so that the embedding service can run with proper GPU acceleration and model caching.
+
+#### Acceptance Criteria
+
+1. WHEN the system initializes THEN it SHALL download BGE-M3 model weights (~2GB) from Hugging Face Hub
+2. IF model download fails THEN the system SHALL retry with exponential backoff and provide clear error messages
+3. WHEN model is cached THEN it SHALL be stored in persistent `/models/bge-m3` directory with version tracking
+4. IF model integrity check fails THEN the system SHALL re-download and validate model weights
+5. WHEN Docker container starts THEN it SHALL have GPU passthrough enabled with NVIDIA runtime
+6. WHEN CUDA environment is configured THEN PyTorch SHALL successfully detect and utilize GPU (torch.cuda.is_available() == True)
+
+### Requirement 2b: Vector Storage Infrastructure
+
+**User Story:** As a database administrator, I want proper vector storage infrastructure, so that embeddings can be efficiently stored and queried for similarity matching.
+
+#### Acceptance Criteria
+
+1. WHEN SEARCH schema is created THEN it SHALL support 1024-dimensional BGE-M3 vectors in JSONB format
+2. IF pgvector extension is available THEN the system SHALL utilize native VECTOR column types for optimal performance
+3. WHEN embeddings are stored THEN they SHALL include proper metadata (source_system, embedding_type, text_hash)
+4. IF similarity queries are performed THEN indexes SHALL optimize for cosine similarity calculations
+5. WHEN change detection is needed THEN SHA-256 hashes SHALL prevent unnecessary re-embedding of unchanged text
+6. WHEN dual embeddings are stored THEN each opportunity SHALL have exactly one identity and one context embedding
 
 ### Requirement 3: Opportunity Matching Service
 
@@ -52,11 +82,13 @@ This platform directly supports Cloud303's goal of automating POD opportunity id
 4. IF no suitable matches are found THEN the system SHALL log the unmatchable opportunity for analysis
 5. WHEN matches are completed THEN results SHALL be stored with full audit trail and explanation of matching logic
 
-### Requirement 4: Billing Data Normalization Service
+### Requirement 4: Billing Data Normalization Service **[DEFERRED]**
+
+> **STATUS: DEFERRED TO PHASE 2** - Billing normalization tables have been successfully implemented and are operational. This requirement is deferred until opportunity matching is complete and proven.
 
 **User Story:** As a financial analyst, I want normalized billing data from RAW schema, so that I can analyze customer AWS costs and validate spend thresholds for POD eligibility.
 
-#### Acceptance Criteria
+#### Acceptance Criteria *(Deferred)*
 
 1. WHEN billing normalization runs THEN it SHALL transform RAW billing tables (c_billing_internal_cur, c_billing_bill_line) into normalized cost entities
 2. IF billing data is incomplete THEN the system SHALL flag missing data and continue processing available records
@@ -64,11 +96,13 @@ This platform directly supports Cloud303's goal of automating POD opportunity id
 4. IF spend thresholds are validated THEN the system SHALL use normalized billing data to determine POD eligibility
 5. WHEN billing data changes THEN normalized tables SHALL be updated incrementally to maintain current cost information
 
-### Requirement 5: POD Rules Engine
+### Requirement 5: POD Rules Engine **[DEFERRED]**
+
+> **STATUS: DEFERRED TO PHASE 2** - POD rules engine implementation is deferred until opportunity matching provides the foundation data needed for effective rule evaluation.
 
 **User Story:** As a compliance officer, I want a configurable rules engine for POD eligibility, so that I can ensure all opportunities meet partner program requirements and business policies.
 
-#### Acceptance Criteria
+#### Acceptance Criteria *(Deferred)*
 
 1. WHEN rules are evaluated THEN the system SHALL check partner-originated status, spend thresholds using normalized billing data, and timeline requirements
 2. IF rules configuration changes THEN the system SHALL reload rules without service restart

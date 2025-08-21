@@ -180,6 +180,9 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `12_validate_data_quality.py` - Data Validation Script - comprehensive data validation for CORE schema with quality checks that validate 7,937 opportunities + AWS accounts data integrity, required field validation, referential integrity checks, business rule validation, data completeness analysis, cross-system consistency validation, and detailed reporting with quality scoring (✅ Task 6.1 completed)
 - `13_run_quality_checks.py` - Quality Check Script - comprehensive quality assessment engine that executes validation checks, calculates quality metrics (completeness, accuracy, consistency, timeliness, uniqueness), generates quality scores and grades, flags data anomalies and critical issues, provides detailed reports with actionable recommendations, analyzes quality trends over time, and generates automated alerts with monitoring capabilities (✅ Task 6.2 completed)
 - `14_normalize_billing_data.py` - Billing Data Normalization Script - transforms RAW billing data (154,591 AWS costs + 12,658 invoices + 2.4M invoice lines) into 6 CORE billing tables following successful aws_accounts/opportunities pattern with direct SQL transformations, POD eligibility calculations, and comprehensive progress tracking (✅ Task 3.3 completed)
+- `16_test_bge_service.py` - BGE Service Integration Test - comprehensive test suite for BGE-M3 embeddings service with GPU acceleration validation, performance benchmarking against RTX 3070 Ti targets (32 embeddings per 500ms), health monitoring verification, and model quality assessment (✅ Task 2.5 completed)
+- `16_test_bge_service_basic.py` - BGE Service Basic Validation - dependency-free validation script that tests file structure, Python syntax, health module architecture, configuration constants, and requirements completeness for BGE embeddings service (✅ Task 2.5 completed)
+- `17_generate_identity_embeddings.py` - Identity Embeddings Generation Script - generates BGE-M3 identity embeddings for all 7,937 opportunities with batch processing optimized for RTX 3070 Ti (32 embeddings per 500ms), hash-based change detection, NULL company_name handling with opportunity ID fallbacks, and comprehensive progress tracking achieving 100% embedding coverage (✅ Task 2.6 completed)
 
 ### 03-data/archived/
 - `01_discover_schemas.py` - ARCHIVED: Basic schema discovery from source databases
@@ -277,6 +280,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 ### backend/services/07-embeddings/
 - `main.py` - BGE-M3 GPU-accelerated embeddings generation service with FastAPI (✅ completed)
 - `embedding_store.py` - Pgvector-based embedding storage and retrieval with Redis caching (✅ completed)
+- `health.py` - BGE Service Health Monitoring - comprehensive health monitor for BGE-M3 embeddings service with GPU utilization tracking, thermal throttling detection, performance benchmarking against RTX 3070 Ti targets, model metrics collection, and FastAPI health endpoints (✅ Task 2.4 completed)
 - `requirements.txt` - Python dependencies for BGE embeddings service
 - `__init__.py` - Package initialization for embeddings service
 
@@ -290,6 +294,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 
 ### backend/tests/unit/services/
 - `test_billing_normalizer.py` - Comprehensive test suite for billing normalization functionality (moved from services directory)
+- `test_bge_embeddings.py` - BGE Embeddings Service Unit Tests - comprehensive test suite for BGE-M3 embeddings service covering service initialization, health monitoring, GPU metrics collection, performance benchmarking, error handling, and integration testing with database connectivity (✅ Task 2.5 completed)
 
 ## Environment Variables
 

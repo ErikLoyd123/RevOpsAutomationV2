@@ -35,7 +35,7 @@ def discover_actual_schema(db_name: str, table_prefix: str = "") -> dict:
             'crm_lead', 'res_partner', 'c_aws_accounts', 'c_billing_internal_cur',
             'c_billing_bill', 'c_billing_bill_line', 'account_move', 'account_move_line',
             'crm_team', 'crm_stage', 'sale_order', 'sale_order_line', 'c_aws_funding_request',
-            'c_billing_spp_bill', 'product_template', 'project_project', 'res_country_state'
+            'c_billing_spp_bill', 'c_billing_ingram_bill', 'product_template', 'project_project', 'res_country_state'
         ]
     elif db_name == 'apn':
         conn = psycopg2.connect(settings.get_database_url('apn'))

@@ -1,5 +1,12 @@
-# Billing Data Normalization Plan
+# Billing Data Normalization Plan - ARCHIVED
 ## RevOps Automation Platform - Financial Data Architecture
+
+> **STATUS: DEFERRED** - This document has been archived as focus has shifted to BGE M3 opportunity matching first.
+> The billing tables described here have been successfully implemented and are working.
+> This plan will be revisited after opportunity matching is complete.
+> 
+> **Date Archived:** August 21, 2025  
+> **Reason:** Prioritizing APN ↔ Odoo opportunity matching using BGE-M3 embeddings
 
 ## Executive Summary
 

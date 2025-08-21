@@ -117,7 +117,7 @@ class BillingNormalizer:
         aws_costs_sql = """
         INSERT INTO core.aws_costs (
             source_id, payer_id, payer_account_id, payer_account_name,
-            company_id, company_name, account_id, account_aws_id, account_name,
+            company_id, customer_name, account_id, account_aws_id, account_name,
             service, charge_type, cost, company_currency_id, currency_name,
             period, period_date, create_uid, create_date, write_uid, write_date,
             _source_system, _ingested_at
@@ -135,7 +135,19 @@ class BillingNormalizer:
             
             -- Company information (original foreign key + resolved values)
             ic.company_id,
-            COALESCE(company.name, 'Unknown Company') as company_name,
+            COALESCE(
+                -- First try to get customer name from billing data via account mapping
+                (SELECT DISTINCT cb.customer_name 
+                 FROM core.customer_billing cb 
+                 WHERE cb.aws_account_id = CASE 
+                     WHEN account_aws.name ~ '^[0-9]{12}$' THEN account_aws.name
+                     ELSE NULL
+                 END
+                 LIMIT 1),
+                -- Fallback to company name
+                company.name,
+                'Unknown Customer'
+            ) as customer_name,
             
             -- Account information (original foreign key + resolved values)
             ic.account_id,
