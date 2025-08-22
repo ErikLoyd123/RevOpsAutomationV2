@@ -11,7 +11,7 @@ Key Features:
 - Resolves foreign keys via JOINs with res_partner, res_users, crm_team, crm_stage, c_aws_accounts
 - Generates identity_text and context_text fields for dual BGE embeddings
 - Calculates SHA-256 hashes for change detection (identity_hash, context_hash)
-- Sets embedding_generated_at to NULL (embeddings generated later by BGE service)
+- Prepares data for BGE embeddings (embeddings generated later by BGE service)
 - Implements batch processing with progress tracking
 - Tracks transformation jobs in ops.transformation_log
 - Comprehensive error handling and validation
@@ -427,7 +427,7 @@ class OpportunityTransformer:
                     create_date, date_open, date_closed, next_activity_date,
                     opportunity_ownership, aws_status, partner_acceptance_status,
                     combined_text, identity_text, context_text, identity_hash, context_hash,
-                    embedding_generated_at, created_at, updated_at
+                    created_at, updated_at
                 ) VALUES (
                     %(source_system)s, %(source_id)s, %(name)s, %(description)s,
                     %(partner_name)s, %(partner_email)s, %(partner_phone)s, %(partner_domain)s, %(company_name)s,
@@ -437,7 +437,7 @@ class OpportunityTransformer:
                     %(create_date)s, %(date_open)s, %(date_closed)s, %(next_activity_date)s,
                     %(opportunity_ownership)s, %(aws_status)s, %(partner_acceptance_status)s,
                     %(combined_text)s, %(identity_text)s, %(context_text)s, %(identity_hash)s, %(context_hash)s,
-                    NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
                 )
                 ON CONFLICT (source_system, source_id) 
                 DO UPDATE SET
@@ -470,13 +470,6 @@ class OpportunityTransformer:
                     context_text = EXCLUDED.context_text,
                     identity_hash = EXCLUDED.identity_hash,
                     context_hash = EXCLUDED.context_hash,
-                    -- Only reset embedding_generated_at if content changed
-                    embedding_generated_at = CASE 
-                        WHEN (core.opportunities.identity_hash != EXCLUDED.identity_hash 
-                              OR core.opportunities.context_hash != EXCLUDED.context_hash)
-                        THEN NULL 
-                        ELSE core.opportunities.embedding_generated_at 
-                    END,
                     updated_at = CURRENT_TIMESTAMP
             """
             

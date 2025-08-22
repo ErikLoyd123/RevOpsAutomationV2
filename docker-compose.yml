@@ -64,7 +64,7 @@ services:
       POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-RevOps2024Secure!}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
       # Performance tuning for development
-      POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements,pgvector
+      # POSTGRES_SHARED_PRELOAD_LIBRARIES: pg_stat_statements,pgvector
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d
@@ -82,7 +82,6 @@ services:
       start_period: 30s
     command: >
       postgres
-      -c shared_preload_libraries=pg_stat_statements,pgvector
       -c max_connections=200
       -c shared_buffers=256MB
       -c effective_cache_size=1GB

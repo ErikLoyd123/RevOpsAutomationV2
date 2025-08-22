@@ -151,38 +151,37 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `01_create_project_structure.sh` - Initial project directory setup
 
 ### 02-database/
-- `01_install_postgresql.sh` - PostgreSQL 15+ installation script for Ubuntu (requires sudo)
-- `01_postgresql_install_instructions.md` - Manual installation instructions for PostgreSQL
-- `02_verify_postgresql.sh` - Verification script to check PostgreSQL installation
-- `03_install_pgvector.sh` - pgvector extension installation script (builds from source if needed)
-- `03_pgvector_install_instructions.md` - Manual installation instructions for pgvector
-- `04_verify_pgvector.sh` - Verification script to test pgvector functionality
-- `05_create_database.py` - Create revops_core database and application user with permissions
-- `06_validate_environment.py` - Validate environment configuration and test all database connections
-- `07_create_schemas.py` - Create database schemas (RAW, CORE, SEARCH, OPS) with proper permissions
-- `08_create_raw_tables.py` - Create all RAW tables mirroring source systems using actual_odoo_raw_schema.sql (✅ uses relative paths)
-- `09_create_core_tables.py` - Create normalized CORE tables for business entities and matching (✅ Updated with POD fields and BGE embedding infrastructure)
-- `10_create_ops_search_tables.py` - Create operational tracking and vector embedding tables with conditional pgvector support (✅ uses relative paths)
-- `11_add_embedding_fields.py` - Add Identity/Context Embedding Fields to CORE Opportunities - extends core.opportunities table with BGE-M3 dual embedding infrastructure, hash-based change detection, and performance indexes for POD matching (✅ Task 2.6 completed)
-- `12_create_billing_core_tables.py` - Create CORE Billing Schema - creates 6 normalized billing tables (customer_invoices, customer_invoice_lines, aws_costs, invoice_reconciliation, billing_aggregates, pod_eligibility) with proper indexes, constraints, and relationships for POD matching workflow (✅ Task 3.2 completed)
+- `01_install_postgresql_native.sh` - **NATIVE ONLY**: Install PostgreSQL 15+ with proper configuration for native development/production environments (skip if using Docker) (✅ renamed with native suffix)
+- `02_install_pgvector_native.sh` - **NATIVE ONLY**: Install pgvector extension for vector similarity search capabilities (skip if using Docker - already included in pgvector image) (✅ renamed and renumbered)
+- `03_validate_environment.py` - Validate environment configuration and test all database connections (✅ renumbered)
+- `04_create_database.py` - Create revops_core database and application user with permissions (✅ renumbered)
+- `05_create_schemas.py` - Create database schemas (RAW, CORE, SEARCH, OPS) with proper permissions (✅ renumbered)
+- `06_create_raw_tables.py` - Create all RAW tables mirroring source systems using actual_odoo_raw_schema.sql (✅ renumbered)
+- `07_create_core_tables.py` - Create normalized CORE tables for business entities and matching (✅ renumbered, includes BGE embedding infrastructure)
+- `08_create_billing_core_tables.py` - Create CORE Billing Schema - creates 5 normalized billing tables with proper indexes, constraints, and relationships for POD matching workflow (✅ renumbered)
+- `09_create_ops_search_tables.py` - Create operational tracking and vector embedding tables with conditional pgvector support (✅ renumbered)
+- `13_setup_bge_model.py` - BGE-M3 Model Setup Script - downloads and configures BGE-M3 model weights (~2GB) from Hugging Face Hub, creates model cache directory structure, verifies model integrity and 1024-dimensional embeddings, and generates model configuration for GPU-accelerated embedding service (✅ Task 2.5a completed)
+- `14_setup_cuda_environment.py` - CUDA Environment Setup Script - configures GPU/CUDA environment for BGE-M3 acceleration, verifies NVIDIA drivers and CUDA toolkit, tests GPU operations and memory management for RTX 3070 Ti (8GB), validates BGE model GPU compatibility, and creates CUDA configuration with performance settings (✅ Task 2.5b completed)
+- `15_start_bge_service.py` - BGE Service Startup Script - starts BGE-M3 service container or direct service depending on environment, checks Docker and NVIDIA runtime availability, creates simplified startup script for immediate testing, validates service endpoints, and provides comprehensive setup summary with next steps (✅ Task 2.5c completed)
 
 ### 03-data/
-- `01_discover_actual_odoo_schemas.py` - Discovers actual Odoo database schema from live production database using information_schema (replaces model-based discovery) (✅ uses relative paths)
-- `02_generate_actual_odoo_sql_schema.py` - Generates SQL DDL from actual database structures discovered in step 01 (✅ uses relative paths)
-- `03_discover_actual_apn_schemas.py` - Discovers actual APN database schema from live production database with complete field analysis and type mapping (✅ uses relative paths)
-- `04_generate_actual_apn_sql_schema.py` - Generates SQL DDL for APN raw tables from actual database structures with metadata fields and indexes (✅ uses relative paths)
-- `06_odoo_connector.py` - Robust Odoo production cluster connection and data extraction module (✅ uses relative paths)
-- `07_apn_connector.py` - APN Connection Module with VARCHAR ID handling, network retry logic, and production database access (✅ uses relative paths)
-- `08_extract_odoo_data.py` - Odoo Data Extraction and Loading Script - extracts from Odoo production database and loads directly into raw.odoo_* tables with INTEGER ID handling, batch processing, sync job tracking, comprehensive progress monitoring, and database connection pooling following APN extraction pattern (✅ Task 4.3 completed)
-- `09_extract_apn_data.py` - APN Data Extraction and Loading Script - extracts from APN production database and loads directly into raw.apn_* tables with VARCHAR ID handling, batch processing, sync job tracking, and comprehensive progress monitoring (✅ uses relative paths)
-- `10_normalize_opportunities.py` - Opportunity Normalization Script V3 - transforms RAW schema data to CORE schema with POD-optimized field mappings, fixed APN name concatenation and domain normalization, proper JOIN resolution for salesperson names, dual BGE embedding text generation (identity + context), and POD eligibility tracking with opportunity ownership classification (✅ V3 Implementation completed - POD-ready)
-- `11_normalize_aws_accounts.py` - AWS Account Normalization Script - creates master AWS accounts in CORE schema with resolved company/partner names, payer relationship resolution, domain extraction and normalization, and combined text generation for BGE embeddings (✅ Task 5.2 completed)
-- `12_validate_data_quality.py` - Data Validation Script - comprehensive data validation for CORE schema with quality checks that validate 7,937 opportunities + AWS accounts data integrity, required field validation, referential integrity checks, business rule validation, data completeness analysis, cross-system consistency validation, and detailed reporting with quality scoring (✅ Task 6.1 completed)
-- `13_run_quality_checks.py` - Quality Check Script - comprehensive quality assessment engine that executes validation checks, calculates quality metrics (completeness, accuracy, consistency, timeliness, uniqueness), generates quality scores and grades, flags data anomalies and critical issues, provides detailed reports with actionable recommendations, analyzes quality trends over time, and generates automated alerts with monitoring capabilities (✅ Task 6.2 completed)
-- `14_normalize_billing_data.py` - Billing Data Normalization Script - transforms RAW billing data (154,591 AWS costs + 12,658 invoices + 2.4M invoice lines) into 6 CORE billing tables following successful aws_accounts/opportunities pattern with direct SQL transformations, POD eligibility calculations, and comprehensive progress tracking (✅ Task 3.3 completed)
-- `16_test_bge_service.py` - BGE Service Integration Test - comprehensive test suite for BGE-M3 embeddings service with GPU acceleration validation, performance benchmarking against RTX 3070 Ti targets (32 embeddings per 500ms), health monitoring verification, and model quality assessment (✅ Task 2.5 completed)
-- `16_test_bge_service_basic.py` - BGE Service Basic Validation - dependency-free validation script that tests file structure, Python syntax, health module architecture, configuration constants, and requirements completeness for BGE embeddings service (✅ Task 2.5 completed)
-- `17_generate_identity_embeddings.py` - Identity Embeddings Generation Script - generates BGE-M3 identity embeddings for all 7,937 opportunities with batch processing optimized for RTX 3070 Ti (32 embeddings per 500ms), hash-based change detection, NULL company_name handling with opportunity ID fallbacks, and comprehensive progress tracking achieving 100% embedding coverage (✅ Task 2.6 completed)
+- `01_discover_actual_odoo_schemas.py` - Discovers actual Odoo database schema from live production database using information_schema (✅ one-time discovery)
+- `02_generate_actual_odoo_sql_schema.py` - Generates SQL DDL from actual database structures discovered in step 01 (✅ one-time generation)
+- `03_discover_actual_apn_schemas.py` - Discovers actual APN database schema from live production database with complete field analysis and type mapping (✅ one-time discovery)
+- `04_generate_actual_apn_sql_schema.py` - Generates SQL DDL for APN raw tables from actual database structures with metadata fields and indexes (✅ one-time generation)
+- `05_odoo_connector.py` - Robust Odoo production cluster connection and data extraction module (✅ renumbered, library/utility)
+- `06_apn_connector.py` - APN Connection Module with VARCHAR ID handling, network retry logic, and production database access (✅ renumbered, library/utility)
+- `07_extract_odoo_data.py` - Odoo Data Extraction and Loading Script - extracts from Odoo production database and loads directly into raw.odoo_* tables with batch processing and progress monitoring (✅ renumbered)
+- `08_extract_apn_data.py` - APN Data Extraction and Loading Script - extracts from APN production database and loads directly into raw.apn_* tables with VARCHAR ID handling and progress monitoring (✅ renumbered)
+- `09_normalize_opportunities.py` - Opportunity Normalization Script V3 - transforms RAW to CORE schema with POD-optimized field mappings, BGE embedding text generation, and POD eligibility tracking (✅ renumbered)
+- `10_normalize_aws_accounts.py` - AWS Account Normalization Script - creates master AWS accounts in CORE schema with resolved relationships and BGE text generation (✅ renumbered)
+- `11_normalize_billing_data.py` - Billing Data Normalization Script - transforms RAW billing data into CORE billing tables with POD eligibility calculations (✅ renumbered to proper sequence)
+- `12_normalize_discount_data.py` - Discount Data Normalization Script - processes discount data for POD calculations (✅ renumbered)
+- `13_validate_data_quality.py` - Data Validation Script - comprehensive validation for all CORE schema data with quality checks and reporting (✅ renumbered to run after all normalization)
+- `14_run_quality_checks.py` - Quality Check Script - comprehensive quality assessment engine with metrics, scoring, and automated alerts (✅ renumbered)
+- `15_test_bge_service_basic.py` - BGE Service Basic Validation - dependency-free validation script for BGE service structure and configuration (✅ renumbered)
+- `16_generate_identity_embeddings.py` - Identity Embeddings Generation Script - generates BGE-M3 embeddings for all opportunities with batch processing (✅ renumbered)
+- `17_test_bge_service.py` - BGE Service Integration Test - comprehensive test suite with GPU acceleration validation and performance benchmarking (✅ renumbered)
 
 ### 03-data/archived/
 - `01_discover_schemas.py` - ARCHIVED: Basic schema discovery from source databases
@@ -197,6 +196,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `02_run_ingestion_service.py` - FastAPI service wrapper for Docker container orchestration of Odoo and APN data ingestion (✅ Task 7.1 component)
 - `03_run_transformation_service.py` - FastAPI service wrapper for Docker container orchestration of opportunity and AWS account transformation (✅ Task 7.1 component) 
 - `04_run_validation_service.py` - FastAPI service wrapper for Docker container orchestration of data quality validation and checks (✅ Task 7.1 component)
+- `05_start_bge_service_direct.py` - BGE Service Direct Startup Script - created by 15_start_bge_service.py for immediate BGE service testing without Docker, loads BGE-M3 model from cache, creates FastAPI endpoints with health/embedding generation functionality, and provides direct GPU-accelerated service access (✅ Generated by Task 2.5c)
 
 ## Infrastructure Registry
 
@@ -213,6 +213,8 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 
 ### BGE GPU Service
 - `infrastructure/docker/bge-service/Dockerfile` - Multi-stage BGE-M3 GPU container optimized for RTX 3070 Ti
+- `models/bge-m3/model_config.json` - BGE-M3 model configuration and metadata
+- `models/bge-m3/cuda_config.json` - CUDA environment configuration for GPU acceleration
 
 ## Documentation Registry
 

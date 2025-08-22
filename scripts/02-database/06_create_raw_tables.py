@@ -70,7 +70,9 @@ def split_sql_statements(sql_content):
             # Save previous statement if exists
             if current_statement.strip():
                 statements.append(current_statement.strip())
-            # Start new statement
+            # Start new statement - add IF NOT EXISTS if not present
+            if 'IF NOT EXISTS' not in line.upper():
+                line = line.replace('CREATE TABLE', 'CREATE TABLE IF NOT EXISTS', 1)
             current_statement = line + '\n'
             in_create_table = True
         elif in_create_table:
@@ -100,7 +102,11 @@ def extract_table_name(create_statement):
 
 def check_table_exists(cursor, table_name):
     """Check if a table exists in the database."""
-    schema, table = table_name.split('.')
+    if '.' in table_name:
+        schema, table = table_name.split('.', 1)
+    else:
+        schema = 'raw'  # Default to raw schema
+        table = table_name
     cursor.execute("""
         SELECT 1 FROM information_schema.tables 
         WHERE table_schema = %s AND table_name = %s

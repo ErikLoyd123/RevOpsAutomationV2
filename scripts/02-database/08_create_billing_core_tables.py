@@ -3,13 +3,12 @@
 Create CORE Billing Schema Tables
 RevOps Automation Platform - Core Platform Services Phase
 
-Creates 6 CORE billing tables for normalized billing data:
+Creates 5 CORE billing tables for normalized billing data:
 1. customer_billing - Normalized customer billing from c_billing_bill
 2. customer_billing_line - Product-level detail for customer invoicing
 3. aws_costs - Normalized AWS Cost and Usage Report data
-4. invoice_reconciliation - Compare staging vs final invoice totals
-5. billing_aggregates - Pre-calculated metrics for BI dashboard
-6. pod_eligibility - Track POD eligibility determinations
+4. pod_eligibility - Track POD eligibility determinations
+5. aws_discounts - Merged and normalized discount data from SPP and Ingram billing sources
 
 Usage:
     source venv/bin/activate
@@ -473,8 +472,6 @@ def main():
             ("customer_billing", create_customer_billing_table),
             ("customer_billing_line", create_customer_billing_line_table),
             ("aws_costs", create_aws_costs_table),
-            ("invoice_reconciliation", create_invoice_reconciliation_table),
-            ("billing_aggregates", create_billing_aggregates_table),
             ("pod_eligibility", create_pod_eligibility_table),
             ("aws_discounts", create_aws_discounts_table)
         ]
@@ -534,7 +531,7 @@ def main():
                 FROM information_schema.tables 
                 WHERE table_schema = 'core' 
                 AND table_name IN ('customer_billing', 'customer_billing_line', 'aws_costs', 
-                                   'invoice_reconciliation', 'billing_aggregates', 'pod_eligibility', 'aws_discounts')
+                                   'pod_eligibility', 'aws_discounts')
                 ORDER BY table_name
             """)
             existing_tables = [row[0] for row in cursor.fetchall()]
@@ -545,7 +542,7 @@ def main():
                 FROM pg_indexes 
                 WHERE schemaname = 'core' 
                 AND tablename IN ('customer_billing', 'customer_billing_line', 'aws_costs', 
-                                  'invoice_reconciliation', 'billing_aggregates', 'pod_eligibility', 'aws_discounts')
+                                  'pod_eligibility', 'aws_discounts')
             """)
             total_indexes = cursor.fetchone()[0]
         
@@ -553,19 +550,19 @@ def main():
         logger.info("\n" + "="*60)
         logger.info("CORE BILLING TABLES CREATION SUMMARY")
         logger.info("="*60)
-        logger.info(f"Tables Created: {len(created_tables)}/7")
+        logger.info(f"Tables Created: {len(created_tables)}/5")
         logger.info(f"Tables: {', '.join(created_tables)}")
         logger.info(f"Indexes Created: {created_indexes}")
         logger.info(f"Total Indexes in Schema: {total_indexes}")
-        logger.info(f"Status: {'✅ SUCCESS' if len(created_tables) == 7 else '❌ PARTIAL'}")
+        logger.info(f"Status: {'✅ SUCCESS' if len(created_tables) == 5 else '❌ PARTIAL'}")
         logger.info("="*60)
         
-        if len(created_tables) == 7:
-            logger.info("🎉 All 7 CORE billing tables created successfully!")
+        if len(created_tables) == 5:
+            logger.info("🎉 All 5 CORE billing tables created successfully!")
             logger.info("Ready for billing data normalization pipeline")
             return True
         else:
-            logger.error(f"❌ Only {len(created_tables)}/7 tables created")
+            logger.error(f"❌ Only {len(created_tables)}/5 tables created")
             return False
             
     except Exception as e:

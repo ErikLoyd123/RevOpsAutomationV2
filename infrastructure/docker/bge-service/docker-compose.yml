@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  bge-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: revops-bge-service
+    restart: unless-stopped
+    
+    # GPU Configuration for RTX 3070 Ti
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    
+    # Environment Variables
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - CUDA_VISIBLE_DEVICES=0
+      - TORCH_CUDA_ARCH_LIST=8.6
+      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
+      - BGE_MODEL_PATH=/app/models/bge-m3
+      - BGE_CACHE_DIR=/app/cache
+      - LOG_LEVEL=info
+      - SERVICE_PORT=8007
+      - MAX_BATCH_SIZE=32
+      - GPU_MEMORY_FRACTION=0.9
+    
+    # Port Mapping
+    ports:
+      - "8007:8007"
+    
+    # Volume Mounts
+    volumes:
+      # Mount the BGE service code
+      - ../../../backend/services/07-embeddings:/app/src:ro
+      # Mount model cache (if using external models)
+      - ../../../models:/app/models:rw
+      # Mount logs directory
+      - ./logs:/app/logs:rw
+      # Mount cache directory
+      - ./cache:/app/cache:rw
+    
+    # Health Check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Network Configuration
+    networks:
+      - revops-network
+    
+    # Logging Configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Resource Limits
+    mem_limit: 6g
+    memswap_limit: 6g
+    shm_size: 2g
+
+# Network Configuration
+networks:
+  revops-network:
+    driver: bridge
+    name: revops-network
+
+# Volume Configuration (if needed for persistent storage)
+volumes:
+  bge-models:
+    driver: local
+  bge-cache:
+    driver: local
+  bge-logs:
+    driver: local

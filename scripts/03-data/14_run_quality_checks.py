@@ -44,19 +44,19 @@ is working correctly and faithfully represents the source data.
 
 Usage:
     # Full quality assessment with report
-    python 13_run_quality_checks.py --full-assessment
+    python 14_run_quality_checks.py --full-assessment
     
     # Quick quality check
-    python 13_run_quality_checks.py --quick-check
+    python 14_run_quality_checks.py --quick-check
     
     # Generate quality dashboard
-    python 13_run_quality_checks.py --dashboard
+    python 14_run_quality_checks.py --dashboard
     
     # Schedule monitoring
-    python 13_run_quality_checks.py --schedule --interval daily
+    python 14_run_quality_checks.py --schedule --interval daily
     
     # Quality trends analysis
-    python 13_run_quality_checks.py --trends --days 30
+    python 14_run_quality_checks.py --trends --days 30
 """
 
 import os
@@ -1260,7 +1260,7 @@ Assessment ID: {assessment_summary['assessment_run']['run_id']}
                 print("✅ Quality check passed. Monitoring setup would be beneficial.")
                 
             print(f"\nNote: For production use, integrate with a task scheduler like:")
-            print(f"  - Cron job: 0 6 * * * /path/to/python /path/to/13_run_quality_checks.py --quick-check")
+            print(f"  - Cron job: 0 6 * * * /path/to/python /path/to/14_run_quality_checks.py --quick-check")
             print(f"  - Systemd timer, AWS CloudWatch Events, or similar")
                 
         except Exception as e:
@@ -1276,16 +1276,16 @@ def main():
         epilog="""
 Examples:
   # Full quality assessment with report
-  python 13_run_quality_checks.py --full-assessment
+  python 14_run_quality_checks.py --full-assessment
   
   # Quick quality check
-  python 13_run_quality_checks.py --quick-check
+  python 14_run_quality_checks.py --quick-check
   
   # Generate quality dashboard
-  python 13_run_quality_checks.py --dashboard
+  python 14_run_quality_checks.py --dashboard
   
   # Quality trends analysis
-  python 13_run_quality_checks.py --trends --days 30
+  python 14_run_quality_checks.py --trends --days 30
         """
     )
     

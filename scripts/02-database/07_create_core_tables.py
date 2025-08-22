@@ -8,7 +8,8 @@ This script creates normalized business entity tables in the CORE schema:
 3. Partners/Companies (normalized contacts)
 4. Products/Services
 5. Sales Orders and Order Lines
-6. Billing Cost Tables (AWS billing optimization)
+
+Note: Billing tables are created by 10_create_billing_core_tables.py (run immediately after this script)
 
 Key features:
 - All foreign keys resolved to human-readable names
@@ -69,7 +70,7 @@ CORE_TABLES = {
 def create_opportunities_table(cursor):
     """Create the core.opportunities table."""
     sql_statement = """
-    CREATE TABLE core.opportunities (
+    CREATE TABLE IF NOT EXISTS core.opportunities (
         -- Primary key and metadata
         id SERIAL PRIMARY KEY,
         source_system VARCHAR(20) NOT NULL,
@@ -115,12 +116,15 @@ def create_opportunities_table(cursor):
         aws_status VARCHAR(50),
         partner_acceptance_status VARCHAR(50),
         
-        -- BGE Embedding support fields (embeddings stored in SEARCH schema)
+        -- BGE Embedding support fields
         combined_text TEXT,
         identity_text TEXT,
         context_text TEXT,
         identity_hash VARCHAR(64),
         context_hash VARCHAR(64),
+        identity_embedding JSONB,
+        context_embedding JSONB,
+        embedding_generated_at TIMESTAMP,
         
         -- Constraints
         UNIQUE(source_system, source_id)
@@ -134,16 +138,22 @@ def create_opportunities_table(cursor):
     CREATE INDEX idx_opportunities_pod_ownership ON core.opportunities(opportunity_ownership);
     CREATE INDEX idx_opportunities_identity_hash ON core.opportunities(identity_hash);
     CREATE INDEX idx_opportunities_context_hash ON core.opportunities(context_hash);
+    CREATE INDEX idx_opportunities_embedding_generated ON core.opportunities(embedding_generated_at);
+    CREATE INDEX idx_opportunities_has_identity_embedding ON core.opportunities((identity_embedding IS NOT NULL));
+    CREATE INDEX idx_opportunities_has_context_embedding ON core.opportunities((context_embedding IS NOT NULL));
     
     -- Add comments
     COMMENT ON TABLE core.opportunities IS 'Normalized opportunities from Odoo CRM leads and APN opportunities';
     COMMENT ON COLUMN core.opportunities.combined_text IS 'Legacy combined text fields for BGE embeddings';
     COMMENT ON COLUMN core.opportunities.identity_text IS 'Clean identity text for entity matching (company + domain)';
     COMMENT ON COLUMN core.opportunities.context_text IS 'Rich business context for semantic understanding';
-    COMMENT ON COLUMN core.opportunities.opportunity_ownership IS 'POD eligibility: Partner Originated vs AWS Originated';
-    COMMENT ON COLUMN core.opportunities.aws_status IS 'AWS internal opportunity status tracking';
     COMMENT ON COLUMN core.opportunities.identity_hash IS 'SHA-256 hash for identity text change detection';
     COMMENT ON COLUMN core.opportunities.context_hash IS 'SHA-256 hash for context text change detection';
+    COMMENT ON COLUMN core.opportunities.identity_embedding IS 'BGE-M3 384-dimensional identity vector for entity matching';
+    COMMENT ON COLUMN core.opportunities.context_embedding IS 'BGE-M3 384-dimensional context vector for semantic similarity';
+    COMMENT ON COLUMN core.opportunities.embedding_generated_at IS 'Timestamp when embeddings were last generated';
+    COMMENT ON COLUMN core.opportunities.opportunity_ownership IS 'POD eligibility: Partner Originated vs AWS Originated';
+    COMMENT ON COLUMN core.opportunities.aws_status IS 'AWS internal opportunity status tracking';
     """
     
     cursor.execute(sql_statement)
@@ -152,7 +162,7 @@ def create_opportunities_table(cursor):
 def create_aws_accounts_table(cursor):
     """Create the core.aws_accounts table."""
     sql_statement = """
-    CREATE TABLE core.aws_accounts (
+    CREATE TABLE IF NOT EXISTS core.aws_accounts (
         -- Primary key and metadata
         id SERIAL PRIMARY KEY,
         source_system VARCHAR(20) NOT NULL,
@@ -188,6 +198,16 @@ def create_aws_accounts_table(cursor):
         
         -- Combined text for embeddings
         combined_text TEXT,
+        c_is_in_cloud303 BOOLEAN DEFAULT FALSE,
+        payer_id INTEGER,
+        c_org_join_date DATE,
+        is_distribution BOOLEAN DEFAULT FALSE,
+        c_aws_support_role VARCHAR,
+        c_aws_billing_role VARCHAR,
+        c_aws_readonly_role VARCHAR,
+        c_aws_global_role VARCHAR,
+        c_aws_admin_role VARCHAR,
+        combined_text_hash VARCHAR(64),
         
         -- Constraints
         UNIQUE(source_system, source_id)
@@ -210,7 +230,7 @@ def create_aws_accounts_table(cursor):
 def create_partners_table(cursor):
     """Create the core.partners table."""
     sql_statement = """
-    CREATE TABLE core.partners (
+    CREATE TABLE IF NOT EXISTS core.partners (
         -- Primary key and metadata
         id SERIAL PRIMARY KEY,
         source_system VARCHAR(20) NOT NULL,
@@ -273,7 +293,7 @@ def create_partners_table(cursor):
 def create_products_table(cursor):
     """Create the core.products table."""
     sql_statement = """
-    CREATE TABLE core.products (
+    CREATE TABLE IF NOT EXISTS core.products (
         -- Primary key and metadata
         id SERIAL PRIMARY KEY,
         source_system VARCHAR(20) NOT NULL,
@@ -334,7 +354,7 @@ def create_products_table(cursor):
 def create_sales_orders_table(cursor):
     """Create the core.sales_orders table."""
     sql_statement = """
-    CREATE TABLE core.sales_orders (
+    CREATE TABLE IF NOT EXISTS core.sales_orders (
         -- Primary key and metadata
         id SERIAL PRIMARY KEY,
         source_system VARCHAR(20) NOT NULL,

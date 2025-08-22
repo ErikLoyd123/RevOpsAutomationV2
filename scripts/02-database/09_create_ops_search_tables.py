@@ -81,7 +81,7 @@ SEARCH_TABLES = {
 def create_sync_jobs_table(cursor):
     """Create the ops.sync_jobs table for tracking data synchronization jobs."""
     sql_statement = """
-    CREATE TABLE ops.sync_jobs (
+    CREATE TABLE IF NOT EXISTS ops.sync_jobs (
         -- Primary key and identifiers
         job_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         job_name VARCHAR(200),
@@ -147,7 +147,7 @@ def create_sync_jobs_table(cursor):
 def create_data_quality_checks_table(cursor):
     """Create the ops.data_quality_checks table for data validation tracking."""
     sql_statement = """
-    CREATE TABLE ops.data_quality_checks (
+    CREATE TABLE IF NOT EXISTS ops.data_quality_checks (
         -- Primary key and identifiers
         check_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         sync_job_id UUID REFERENCES ops.sync_jobs(job_id) ON DELETE CASCADE,
@@ -213,7 +213,7 @@ def create_data_quality_checks_table(cursor):
 def create_transformation_log_table(cursor):
     """Create the ops.transformation_log table for data lineage tracking."""
     sql_statement = """
-    CREATE TABLE ops.transformation_log (
+    CREATE TABLE IF NOT EXISTS ops.transformation_log (
         -- Primary key and identifiers
         log_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         transformation_name VARCHAR(200),
@@ -281,7 +281,7 @@ def create_transformation_log_table(cursor):
 def create_normalization_jobs_table(cursor):
     """Create the ops.normalization_jobs table for billing data normalization tracking."""
     sql_statement = """
-    CREATE TABLE ops.normalization_jobs (
+    CREATE TABLE IF NOT EXISTS ops.normalization_jobs (
         -- Primary key and identifiers
         job_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         job_name VARCHAR(200),
@@ -391,7 +391,7 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
     
     # Base table structure
     base_sql = """
-    CREATE TABLE search.embeddings_opportunities (
+    CREATE TABLE IF NOT EXISTS search.embeddings_opportunities (
         -- Primary Keys and References
         embedding_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         opportunity_id UUID NOT NULL,
@@ -522,7 +522,7 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
 def create_similarity_cache_table(cursor):
     """Create the search.similarity_cache table for precomputed similarity scores."""
     sql_statement = """
-    CREATE TABLE search.similarity_cache (
+    CREATE TABLE IF NOT EXISTS search.similarity_cache (
         -- Primary key and identifiers
         cache_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         

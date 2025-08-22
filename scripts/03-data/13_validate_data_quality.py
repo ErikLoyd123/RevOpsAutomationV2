@@ -27,24 +27,29 @@ Validation Categories:
 Tables Validated:
 - core.opportunities (Odoo + APN combined opportunities)
 - core.aws_accounts (Master AWS account registry)
-- core.companies (Company master data)
-- core.contacts (Contact information)
+- core.customer_billing (Normalized customer billing data)
+- core.customer_billing_line (Product-level billing detail)
+- core.aws_costs (Normalized AWS cost and usage data)
+- core.aws_discounts (Merged SPP and Ingram discount data)
+- core.partners (Partner/company master data)
+- core.products (Product catalog data)
+- core.sales_orders (Sales order data)
 
 Usage:
     # Full validation suite
-    python 12_validate_data_quality.py --full-validation
+    python 16_validate_data_quality.py --full-validation
     
     # Schema validation only
-    python 12_validate_data_quality.py --schema-validation
+    python 16_validate_data_quality.py --schema-validation
     
     # Business rules validation
-    python 12_validate_data_quality.py --business-rules
+    python 16_validate_data_quality.py --business-rules
     
     # Generate quality report
-    python 12_validate_data_quality.py --quality-report
+    python 16_validate_data_quality.py --quality-report
     
     # Check specific table
-    python 12_validate_data_quality.py --table core.opportunities
+    python 16_validate_data_quality.py --table core.opportunities
 """
 
 import os

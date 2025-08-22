@@ -8,7 +8,7 @@ This script tests the BGE embeddings service to verify:
 - Embedding quality and dimensions are correct
 - Health monitoring is functioning
 
-Run: python scripts/03-data/16_test_bge_service.py
+Run: python scripts/03-data/17_test_bge_service.py
 """
 
 import asyncio

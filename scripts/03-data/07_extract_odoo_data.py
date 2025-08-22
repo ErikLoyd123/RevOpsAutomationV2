@@ -16,7 +16,7 @@ Key Features:
 Odoo Tables Extracted (18 tables, 1,159 fields total):
 - crm_lead (153 fields) - CRM opportunities/leads
 - res_partner (157 fields) - Partners/companies/contacts
-- res_users (25 fields) - System users for salesperson resolution
+- res_users (8 fields) - System users for salesperson resolution
 - c_aws_accounts (78 fields) - AWS account records
 - c_billing_internal_cur (14 fields) - AWS actual costs
 - c_billing_bill (16 fields) - Invoice staging
@@ -102,9 +102,10 @@ class OdooDataLoader:
                 'batch_size': 500
             },
             'res_users': {
-                'fields': 25,
+                'fields': 8,
                 'description': 'System users for salesperson resolution',
-                'batch_size': 1000
+                'batch_size': 1000,
+                'field_list': ['id', 'active', 'login', 'partner_id', 'company_id', 'create_date', 'notification_type', 'sale_team_id']
             },
             'c_aws_accounts': {
                 'fields': 78,
@@ -383,7 +384,14 @@ class OdooDataLoader:
             records_processed = 0
             records_inserted = 0
             
-            select_query = f"SELECT * FROM {table_name}"
+            # Use specific field list if defined, otherwise SELECT *
+            table_config = self.odoo_tables[table_name]
+            if 'field_list' in table_config:
+                field_list = ', '.join(table_config['field_list'])
+                select_query = f"SELECT {field_list} FROM {table_name}"
+            else:
+                select_query = f"SELECT * FROM {table_name}"
+            
             if limit:
                 select_query += f" LIMIT {limit}"
             

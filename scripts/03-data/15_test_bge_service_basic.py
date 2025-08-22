@@ -9,7 +9,7 @@ requiring external dependencies. It verifies:
 - Basic configuration is reasonable
 - Health monitoring endpoints are defined
 
-Run: python scripts/03-data/16_test_bge_service_basic.py
+Run: python scripts/03-data/15_test_bge_service_basic.py
 """
 
 import ast

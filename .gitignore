@@ -39,5 +39,9 @@ logs/
 data/*
 !data/.gitkeep
 
+# Model files (large ML models)
+models/
+
 # Docker
 *.pid
+revops_backup.sql
