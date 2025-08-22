@@ -299,19 +299,16 @@ services:
 # BGE Embeddings Service (GPU Profile)
 # =============================================================================
   # ---------------------------------------------------------------------------
-  # BGE-M3 GPU Embeddings Service
+  # BGE-M3 GPU Embeddings Service (Self-Contained Microservice)
   # ---------------------------------------------------------------------------
   bge-service:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/bge-service/Dockerfile
-      target: runtime
+    image: python:3.11-slim
     container_name: revops-bge-service
     restart: unless-stopped
     profiles:
       - gpu
       - prod
-    runtime: nvidia
+    # runtime: nvidia  # Commented out for testing without GPU
     environment:
       # NVIDIA GPU Configuration
       NVIDIA_VISIBLE_DEVICES: "0"
@@ -319,23 +316,8 @@ services:
       CUDA_VISIBLE_DEVICES: "0"
       
       # BGE Service Configuration
-      BGE_MODEL_PATH: /app/models/bge-m3
       BGE_MAX_BATCH_SIZE: ${BGE_BATCH_SIZE:-32}
       BGE_MAX_SEQUENCE_LENGTH: ${BGE_MAX_SEQUENCE:-8192}
-      BGE_SIMILARITY_THRESHOLD: ${BGE_SIMILARITY_THRESHOLD:-0.7}
-      BGE_CACHE_SIZE: ${BGE_CACHE_SIZE:-1000}
-      
-      # Database Connection
-      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
-      
-      # Redis Configuration
-      REDIS_URL: redis://redis:6379/0
-      
-      # Service Configuration
-      SERVICE_PORT: 8007
-      SERVICE_NAME: bge-embeddings
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      ENVIRONMENT: ${ENVIRONMENT:-development}
       
       # Performance Tuning for RTX 3070 Ti
       TORCH_CUDA_ARCH_LIST: "8.6"
@@ -343,110 +325,71 @@ services:
       TORCH_CUDNN_V8_API_ENABLED: "1"
       OMP_NUM_THREADS: "4"
       MKL_NUM_THREADS: "4"
+      
+      # Hugging Face Cache
+      TRANSFORMERS_CACHE: /models
+      HF_HOME: /models
     volumes:
-      - bge_model_cache:/app/models
-      - ./backend/services/07-embeddings:/app/src
-      - app_logs:/app/logs
+      - ./models:/models
     ports:
       - "${BGE_PORT:-8007}:8007"
     networks:
       revops-network:
         ipv4_address: 172.20.0.20
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8007/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
     deploy:
       resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ['0']
-              capabilities: [gpu]
         limits:
           memory: 6G
           cpus: '4.0'
+    command: >
+      bash -c "
+      pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu118 torch sentence-transformers flask requests &&
+      python3 -c '
+import flask
+from flask import Flask, request, jsonify
+from sentence_transformers import SentenceTransformer
+import torch
+
+app = Flask(__name__)
+model = SentenceTransformer(\"BAAI/bge-m3\")
+print(f\"BGE-M3 loaded. CUDA: {torch.cuda.is_available()}\")
+
+def health():
+    return jsonify({
+        \"status\": \"healthy\",
+        \"cuda\": torch.cuda.is_available(),
+        \"model\": \"BAAI/bge-m3\",
+        \"device\": str(model.device)
+    })
+
+def embed():
+    if not request.json or \"texts\" not in request.json:
+        return jsonify({\"error\": \"texts required\"}), 400
+    
+    texts = request.json[\"texts\"]
+    embeddings = model.encode(texts, normalize_embeddings=True).tolist()
+    
+    return jsonify({
+        \"embeddings\": embeddings,
+        \"dimension\": len(embeddings[0]) if embeddings else 1024,
+        \"count\": len(embeddings)
+    })
+
+app.add_url_rule(\"/health\", \"health\", health, methods=[\"GET\"])
+app.add_url_rule(\"/embed\", \"embed\", embed, methods=[\"POST\"])
+app.run(host=\"0.0.0.0\", port=8007)
+'
+      "
     labels:
       - "com.revops.service=embeddings"
       - "com.revops.gpu=required"
       - "com.revops.gpu.model=RTX_3070_Ti"
-      - "com.revops.environment=${ENVIRONMENT:-development}"
-
-  # ---------------------------------------------------------------------------
-  # BGE CPU Fallback Service (Development Profile)
-  # ---------------------------------------------------------------------------
-  bge-service-cpu:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/bge-service/Dockerfile
-      target: runtime
-    container_name: revops-bge-service-cpu
-    restart: unless-stopped
-    profiles:
-      - dev
-      - cpu
-    environment:
-      # CPU-only Configuration
-      CUDA_VISIBLE_DEVICES: ""
-      
-      # BGE Service Configuration
-      BGE_MODEL_PATH: /app/models/bge-m3
-      BGE_MAX_BATCH_SIZE: ${BGE_BATCH_SIZE:-8}  # Smaller batches for CPU
-      BGE_MAX_SEQUENCE_LENGTH: ${BGE_MAX_SEQUENCE:-4096}  # Reduced for CPU
-      BGE_SIMILARITY_THRESHOLD: ${BGE_SIMILARITY_THRESHOLD:-0.7}
-      BGE_CACHE_SIZE: ${BGE_CACHE_SIZE:-500}
-      
-      # Database Connection
-      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
-      
-      # Redis Configuration
-      REDIS_URL: redis://redis:6379/0
-      
-      # Service Configuration
-      SERVICE_PORT: 8007
-      SERVICE_NAME: bge-embeddings-cpu
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      ENVIRONMENT: ${ENVIRONMENT:-development}
-      
-      # CPU Performance Tuning
-      OMP_NUM_THREADS: "8"
-      MKL_NUM_THREADS: "8"
-      OPENBLAS_NUM_THREADS: "8"
-    volumes:
-      - bge_model_cache:/app/models
-      - ./backend/services/07-embeddings:/app/src
-      - app_logs:/app/logs
-    ports:
-      - "${BGE_PORT:-8007}:8007"
-    networks:
-      revops-network:
-        ipv4_address: 172.20.0.21
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 90s  # Longer startup time for CPU
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-          cpus: '8.0'
-    labels:
-      - "com.revops.service=embeddings"
-      - "com.revops.gpu=fallback"
       - "com.revops.environment=${ENVIRONMENT:-development}"
 
 # =============================================================================

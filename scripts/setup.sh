@@ -39,20 +39,19 @@ else
 fi
 echo ""
 
-# Check if we're in virtual environment
-if [[ "$VIRTUAL_ENV" == "" ]]; then
-    echo -e "${YELLOW}⚠️  Activating virtual environment...${NC}"
-    if [[ -f "$PROJECT_ROOT/venv/bin/activate" ]]; then
-        source "$PROJECT_ROOT/venv/bin/activate"
-        echo -e "${GREEN}✅ Virtual environment activated${NC}"
-    else
-        echo -e "${RED}❌ Virtual environment not found at $PROJECT_ROOT/venv/${NC}"
-        echo "Please create virtual environment first:"
-        echo "  python -m venv venv"
-        echo "  source venv/bin/activate"
-        echo "  pip install -r requirements.txt"
-        exit 1
-    fi
+# Always ensure virtual environment is activated
+echo -e "${YELLOW}⚠️  Ensuring virtual environment is activated...${NC}"
+if [[ -f "$PROJECT_ROOT/venv/bin/activate" ]]; then
+    source "$PROJECT_ROOT/venv/bin/activate"
+    echo -e "${GREEN}✅ Virtual environment activated${NC}"
+    echo -e "${GREEN}   Python: $(which python)${NC}"
+else
+    echo -e "${RED}❌ Virtual environment not found at $PROJECT_ROOT/venv/${NC}"
+    echo "Please create virtual environment first:"
+    echo "  python3 -m venv venv"
+    echo "  source venv/bin/activate"
+    echo "  pip install -r requirements.txt"
+    exit 1
 fi
 
 # Change to project root
@@ -198,54 +197,164 @@ if [[ -n "$CONTAINERS_TO_START" ]]; then
 fi
 
 echo -e "${BLUE}🔧 Step 1: Environment Validation${NC}"
+echo -e "${YELLOW}   → Starting environment validation...${NC}"
 python scripts/02-database/03_validate_environment.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ Environment validation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ Environment validation failed${NC}"
+    exit 1
+fi
 
 echo -e "${BLUE}🗃️  Step 2: Database and Schema Creation${NC}"
+echo -e "${YELLOW}   → Starting database creation...${NC}"
 python scripts/02-database/04_create_database.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ Database creation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ Database creation failed${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}   → Starting schema creation...${NC}"
 python scripts/02-database/05_create_schemas.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ Schema creation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ Schema creation failed${NC}"
+    exit 1
+fi
 
 echo -e "${BLUE}📊 Step 3: RAW Tables Creation${NC}"
+echo -e "${YELLOW}   → Starting RAW tables creation...${NC}"
 python scripts/02-database/06_create_raw_tables.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ RAW tables creation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ RAW tables creation failed${NC}"
+    exit 1
+fi
 
 echo -e "${BLUE}🏢 Step 4: CORE Tables Creation${NC}"
+echo -e "${YELLOW}   → Starting CORE business tables creation...${NC}"
 python scripts/02-database/07_create_core_tables.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ CORE business tables creation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ CORE business tables creation failed${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}   → Starting CORE billing tables creation...${NC}"
 python scripts/02-database/08_create_billing_core_tables.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ CORE billing tables creation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ CORE billing tables creation failed${NC}"
+    exit 1
+fi
 
 echo -e "${BLUE}🔍 Step 5: OPS and SEARCH Tables Creation${NC}"
+echo -e "${YELLOW}   → Starting OPS and SEARCH tables creation...${NC}"
 python scripts/02-database/09_create_ops_search_tables.py
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}   ✅ OPS and SEARCH tables creation completed successfully${NC}"
+else
+    echo -e "${RED}   ❌ OPS and SEARCH tables creation failed${NC}"
+    exit 1
+fi
 
 # Data Pipeline Execution (if requested)
 if [[ "$INCLUDE_DATA_PIPELINE" == true ]]; then
     echo ""
-    echo -e "${GREEN}🎉 Database Infrastructure Complete! Starting Data Pipeline...${NC}"
+    echo -e "${GREEN}🎉 Database Infrastructure Complete! Validating Tables Before Data Pipeline...${NC}"
     echo ""
     
-    echo -e "${BLUE}📊 Step 6: Data Extraction${NC}"
-    echo "Extracting Odoo production data..."
+    echo -e "${BLUE}🔍 Step 6: Table Validation${NC}"
+    echo -e "${YELLOW}   → Validating all required tables exist...${NC}"
+    python scripts/02-database/10_validate_tables.py
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Table validation completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Table validation failed - missing required tables${NC}"
+        echo -e "${RED}   Cannot proceed with data extraction${NC}"
+        exit 1
+    fi
+    
+    echo -e "${BLUE}📊 Step 7: Data Extraction${NC}"
+    echo -e "${YELLOW}   → Extracting Odoo production data...${NC}"
     python scripts/03-data/07_extract_odoo_data.py --full-extract
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Odoo data extraction completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Odoo data extraction failed${NC}"
+        exit 1
+    fi
     
-    echo "Extracting APN production data..."
+    echo -e "${YELLOW}   → Extracting APN production data...${NC}"
     python scripts/03-data/08_extract_apn_data.py --full-extract
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ APN data extraction completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ APN data extraction failed${NC}"
+        exit 1
+    fi
     
-    echo -e "${BLUE}🔄 Step 7: Data Normalization${NC}"
-    echo "Normalizing opportunities..."
+    echo -e "${BLUE}🔄 Step 8: Data Normalization${NC}"
+    echo -e "${YELLOW}   → Normalizing opportunities...${NC}"
     python scripts/03-data/09_normalize_opportunities.py --full-transform
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Opportunities normalization completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Opportunities normalization failed${NC}"
+        exit 1
+    fi
     
-    echo "Normalizing AWS accounts..."
-    python scripts/03-data/10_normalize_aws_accounts.py --full-transform
+    echo -e "${YELLOW}   → Normalizing AWS accounts...${NC}"
+    python scripts/03-data/10_normalize_aws_accounts.py --full-normalize
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ AWS accounts normalization completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ AWS accounts normalization failed${NC}"
+        exit 1
+    fi
     
-    echo "Normalizing billing data..."
+    echo -e "${YELLOW}   → Normalizing billing data...${NC}"
     python scripts/03-data/11_normalize_billing_data.py --full-normalize
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Billing data normalization completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Billing data normalization failed${NC}"
+        exit 1
+    fi
     
-    echo "Normalizing discount data..."
+    echo -e "${YELLOW}   → Normalizing discount data...${NC}"
     python scripts/03-data/12_normalize_discount_data.py --full-normalize
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Discount data normalization completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Discount data normalization failed${NC}"
+        exit 1
+    fi
     
-    echo -e "${BLUE}✅ Step 8: Data Validation${NC}"
-    echo "Running data quality validation..."
+    echo -e "${BLUE}✅ Step 9: Data Validation${NC}"
+    echo -e "${YELLOW}   → Running data quality validation...${NC}"
     python scripts/03-data/13_validate_data_quality.py --full-validation
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Data quality validation completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Data quality validation failed${NC}"
+        exit 1
+    fi
     
-    echo "Running quality checks..."
+    echo -e "${YELLOW}   → Running quality checks...${NC}"
     python scripts/03-data/14_run_quality_checks.py --full-assessment
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}   ✅ Quality checks completed successfully${NC}"
+    else
+        echo -e "${RED}   ❌ Quality checks failed${NC}"
+        exit 1
+    fi
     
     echo ""
     echo -e "${GREEN}🎉 Complete Platform Setup Finished!${NC}"

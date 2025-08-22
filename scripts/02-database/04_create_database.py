@@ -18,14 +18,27 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from dotenv import load_dotenv
 from pathlib import Path
+import subprocess
 
 # Load environment variables
 project_root = Path(__file__).resolve().parent.parent.parent
 env_path = project_root / '.env'
 load_dotenv(env_path)
 
+def detect_docker_environment():
+    """Detect if we're running against a Docker container."""
+    try:
+        # Check if Docker containers are running with our PostgreSQL
+        result = subprocess.run(
+            ['docker', 'ps', '--filter', 'name=revops-postgres', '--format', '{{.Names}}'],
+            capture_output=True, text=True, timeout=5
+        )
+        return 'revops-postgres' in result.stdout
+    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
 def create_database_and_user():
-    """Create the revops_core database and application user."""
+    """Create or validate the revops_core database and application user."""
     
     # Get configuration from environment
     db_host = os.getenv('LOCAL_DB_HOST', 'localhost')
@@ -38,103 +51,146 @@ def create_database_and_user():
     admin_user = os.getenv('LOCAL_DB_ADMIN_USER', 'postgres')
     admin_password = os.getenv('LOCAL_DB_ADMIN_PASSWORD', 'postgres')
     
+    # Detect environment
+    is_docker = detect_docker_environment()
+    
     print("=" * 60)
     print("RevOps Database Creation Script")
     print("=" * 60)
+    print(f"Environment: {'Docker Container' if is_docker else 'Native PostgreSQL'}")
+    print("=" * 60)
     
     try:
-        # Connect as admin to create database and user
-        print(f"\n1. Connecting to PostgreSQL as admin user '{admin_user}'...")
-        conn = psycopg2.connect(
-            host=db_host,
-            port=db_port,
-            user=admin_user,
-            password=admin_password,
-            database='postgres'  # Connect to default database
-        )
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        cursor = conn.cursor()
-        print("   ✓ Connected successfully")
-        
-        # Check if database exists
-        print(f"\n2. Checking if database '{db_name}' exists...")
-        cursor.execute(
-            "SELECT 1 FROM pg_database WHERE datname = %s",
-            (db_name,)
-        )
-        db_exists = cursor.fetchone()
-        
-        if db_exists:
-            print(f"   ⚠ Database '{db_name}' already exists")
+        if is_docker:
+            # Docker mode: Validate existing setup
+            print(f"\n1. Docker Mode: Validating existing setup...")
+            print(f"   Expected database: {db_name}")
+            print(f"   Expected user: {app_user}")
+            
+            # Try direct connection to validate everything is set up
+            test_conn = psycopg2.connect(
+                host=db_host,
+                port=db_port,
+                database=db_name,
+                user=app_user,
+                password=app_password
+            )
+            test_cursor = test_conn.cursor()
+            
+            # Verify database and user
+            test_cursor.execute("SELECT current_database(), current_user")
+            current_db, current_user = test_cursor.fetchone()
+            print(f"   ✓ Connected to database: {current_db}")
+            print(f"   ✓ Connected as user: {current_user}")
+            
+            # Verify schemas exist (created by Docker init script)
+            test_cursor.execute(
+                "SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('raw', 'core', 'ops', 'search')"
+            )
+            schemas = [row[0] for row in test_cursor.fetchall()]
+            print(f"   ✓ Found schemas: {', '.join(schemas)}")
+            
+            # Test a simple query
+            test_cursor.execute("SELECT version()")
+            version = test_cursor.fetchone()[0]
+            print(f"   ✓ PostgreSQL version: {version.split(',')[0]}")
+            
+            test_cursor.close()
+            test_conn.close()
+            
         else:
-            # Create database
-            print(f"   Creating database '{db_name}'...")
-            cursor.execute(sql.SQL("CREATE DATABASE {}").format(
-                sql.Identifier(db_name)
+            # Native mode: Create database and user
+            print(f"\n1. Native Mode: Connecting as admin user '{admin_user}'...")
+            conn = psycopg2.connect(
+                host=db_host,
+                port=db_port,
+                user=admin_user,
+                password=admin_password,
+                database='postgres'  # Connect to default database
+            )
+            conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            cursor = conn.cursor()
+            print("   ✓ Connected successfully")
+            
+            # Check if database exists
+            print(f"\n2. Checking if database '{db_name}' exists...")
+            cursor.execute(
+                "SELECT 1 FROM pg_database WHERE datname = %s",
+                (db_name,)
+            )
+            db_exists = cursor.fetchone()
+            
+            if db_exists:
+                print(f"   ⚠ Database '{db_name}' already exists")
+            else:
+                # Create database
+                print(f"   Creating database '{db_name}'...")
+                cursor.execute(sql.SQL("CREATE DATABASE {}").format(
+                    sql.Identifier(db_name)
+                ))
+                print(f"   ✓ Database '{db_name}' created successfully")
+            
+            # Check if user exists
+            print(f"\n3. Checking if user '{app_user}' exists...")
+            cursor.execute(
+                "SELECT 1 FROM pg_user WHERE usename = %s",
+                (app_user,)
+            )
+            user_exists = cursor.fetchone()
+            
+            if user_exists:
+                print(f"   ⚠ User '{app_user}' already exists")
+                # Update password in case it changed
+                cursor.execute(
+                    sql.SQL("ALTER USER {} WITH PASSWORD %s").format(
+                        sql.Identifier(app_user)
+                    ),
+                    (app_password,)
+                )
+                print(f"   ✓ Updated password for user '{app_user}'")
+            else:
+                # Create user
+                print(f"   Creating user '{app_user}'...")
+                cursor.execute(
+                    sql.SQL("CREATE USER {} WITH PASSWORD %s").format(
+                        sql.Identifier(app_user)
+                    ),
+                    (app_password,)
+                )
+                print(f"   ✓ User '{app_user}' created successfully")
+            
+            # Grant permissions
+            print(f"\n4. Granting permissions on database '{db_name}' to user '{app_user}'...")
+            cursor.execute(sql.SQL("GRANT ALL PRIVILEGES ON DATABASE {} TO {}").format(
+                sql.Identifier(db_name),
+                sql.Identifier(app_user)
             ))
-            print(f"   ✓ Database '{db_name}' created successfully")
-        
-        # Check if user exists
-        print(f"\n3. Checking if user '{app_user}' exists...")
-        cursor.execute(
-            "SELECT 1 FROM pg_user WHERE usename = %s",
-            (app_user,)
-        )
-        user_exists = cursor.fetchone()
-        
-        if user_exists:
-            print(f"   ⚠ User '{app_user}' already exists")
-            # Update password in case it changed
-            cursor.execute(
-                sql.SQL("ALTER USER {} WITH PASSWORD %s").format(
-                    sql.Identifier(app_user)
-                ),
-                (app_password,)
+            print(f"   ✓ Permissions granted successfully")
+            
+            # Close admin connection
+            cursor.close()
+            conn.close()
+            
+            # Test connection with application user
+            print(f"\n5. Testing connection with application user '{app_user}'...")
+            test_conn = psycopg2.connect(
+                host=db_host,
+                port=db_port,
+                database=db_name,
+                user=app_user,
+                password=app_password
             )
-            print(f"   ✓ Updated password for user '{app_user}'")
-        else:
-            # Create user
-            print(f"   Creating user '{app_user}'...")
-            cursor.execute(
-                sql.SQL("CREATE USER {} WITH PASSWORD %s").format(
-                    sql.Identifier(app_user)
-                ),
-                (app_password,)
-            )
-            print(f"   ✓ User '{app_user}' created successfully")
-        
-        # Grant permissions
-        print(f"\n4. Granting permissions on database '{db_name}' to user '{app_user}'...")
-        cursor.execute(sql.SQL("GRANT ALL PRIVILEGES ON DATABASE {} TO {}").format(
-            sql.Identifier(db_name),
-            sql.Identifier(app_user)
-        ))
-        print(f"   ✓ Permissions granted successfully")
-        
-        # Close admin connection
-        cursor.close()
-        conn.close()
-        
-        # Test connection with application user
-        print(f"\n5. Testing connection with application user '{app_user}'...")
-        test_conn = psycopg2.connect(
-            host=db_host,
-            port=db_port,
-            database=db_name,
-            user=app_user,
-            password=app_password
-        )
-        test_cursor = test_conn.cursor()
-        
-        # Test a simple query
-        test_cursor.execute("SELECT version()")
-        version = test_cursor.fetchone()[0]
-        print(f"   ✓ Connection successful!")
-        print(f"   PostgreSQL version: {version.split(',')[0]}")
-        
-        # Close test connection
-        test_cursor.close()
-        test_conn.close()
+            test_cursor = test_conn.cursor()
+            
+            # Test a simple query
+            test_cursor.execute("SELECT version()")
+            version = test_cursor.fetchone()[0]
+            print(f"   ✓ Connection successful!")
+            print(f"   PostgreSQL version: {version.split(',')[0]}")
+            
+            # Close test connection
+            test_cursor.close()
+            test_conn.close()
         
         print("\n" + "=" * 60)
         print("✓ Database setup completed successfully!")

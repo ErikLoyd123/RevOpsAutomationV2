@@ -368,7 +368,7 @@ class BillingNormalizer:
             GROUP BY account_id, DATE_TRUNC('month', period_date)
         )
         SELECT 
-            ms.account_id,
+            aa.id as account_id,
             CURRENT_DATE as evaluation_date,
             ms.month_period as period_start,
             (ms.month_period + INTERVAL '1 month' - INTERVAL '1 day')::date as period_end,
@@ -390,6 +390,7 @@ class BillingNormalizer:
             CURRENT_TIMESTAMP as calculated_at,
             'monthly_spend_analysis' as calculation_method
         FROM monthly_spend ms
+        INNER JOIN core.aws_accounts aa ON aa.account_id = ms.account_id::text
         WHERE ms.monthly_total > 0
         """
         

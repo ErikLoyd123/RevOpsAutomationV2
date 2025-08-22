@@ -418,12 +418,9 @@ def create_table_comments(db_manager):
         # customer_billing comments
         "COMMENT ON TABLE core.customer_billing IS 'Normalized customer billing from c_billing_bill with resolved references';",
         "COMMENT ON COLUMN core.customer_billing.bill_id IS 'Reference to raw.odoo_c_billing_bill.id';",
-        "COMMENT ON COLUMN core.customer_billing.pod_eligible IS 'Whether this invoice qualifies for POD consideration';",
         
         # customer_billing_line comments
         "COMMENT ON TABLE core.customer_billing_line IS 'Product-level detail for customer invoicing from c_billing_bill_line';",
-        "COMMENT ON COLUMN core.customer_billing_line.aws_service_mapping IS 'Calculated mapping to AWS service codes for cost comparison';",
-        "COMMENT ON COLUMN core.customer_billing_line.estimated_margin IS 'Calculated margin: line_total - estimated_aws_cost';",
         
         # aws_costs comments
         "COMMENT ON TABLE core.aws_costs IS 'Mirrors raw.odoo_c_billing_internal_cur with resolved foreign keys';",
@@ -434,13 +431,6 @@ def create_table_comments(db_manager):
         "COMMENT ON COLUMN core.aws_costs.account_id IS 'Original account_id foreign key from raw table (preserved)';",
         "COMMENT ON COLUMN core.aws_costs.payer_id IS 'Original payer_id foreign key from raw table (preserved)';",
         
-        # invoice_reconciliation comments
-        "COMMENT ON TABLE core.invoice_reconciliation IS 'Compare c_billing_bill totals vs account_move totals for accuracy';",
-        "COMMENT ON COLUMN core.invoice_reconciliation.variance IS 'Difference between staging_total and final_total';",
-        
-        # billing_aggregates comments
-        "COMMENT ON TABLE core.billing_aggregates IS 'Pre-calculated metrics for BI dashboard performance';",
-        "COMMENT ON COLUMN core.billing_aggregates.aggregation_level IS 'Level of aggregation: account, service, or product';",
         
         # pod_eligibility comments
         "COMMENT ON TABLE core.pod_eligibility IS 'Track POD eligibility determinations and calculations';",
@@ -534,17 +524,19 @@ def main():
                                    'pod_eligibility', 'aws_discounts')
                 ORDER BY table_name
             """)
-            existing_tables = [row[0] for row in cursor.fetchall()]
+            existing_tables = [row['table_name'] for row in cursor.fetchall()]
             
             # Verify indexes
             cursor.execute("""
-                SELECT COUNT(*) 
+                SELECT COUNT(*) as count
                 FROM pg_indexes 
                 WHERE schemaname = 'core' 
                 AND tablename IN ('customer_billing', 'customer_billing_line', 'aws_costs', 
                                   'pod_eligibility', 'aws_discounts')
             """)
-            total_indexes = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            # RealDictRow uses column names as keys
+            total_indexes = result['count'] if result else 0
         
         # Summary report
         logger.info("\n" + "="*60)

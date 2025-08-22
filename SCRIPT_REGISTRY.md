@@ -160,6 +160,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `07_create_core_tables.py` - Create normalized CORE tables for business entities and matching (✅ renumbered, includes BGE embedding infrastructure)
 - `08_create_billing_core_tables.py` - Create CORE Billing Schema - creates 5 normalized billing tables with proper indexes, constraints, and relationships for POD matching workflow (✅ renumbered)
 - `09_create_ops_search_tables.py` - Create operational tracking and vector embedding tables with conditional pgvector support (✅ renumbered)
+- `10_validate_tables.py` - Table Validation Script - validates all required tables exist before data extraction, prevents pipeline failures by checking RAW (25 tables), CORE (10 tables), OPS (2 tables), and SEARCH (2 tables) infrastructure (✅ added for proper error checking)
 - `13_setup_bge_model.py` - BGE-M3 Model Setup Script - downloads and configures BGE-M3 model weights (~2GB) from Hugging Face Hub, creates model cache directory structure, verifies model integrity and 1024-dimensional embeddings, and generates model configuration for GPU-accelerated embedding service (✅ Task 2.5a completed)
 - `14_setup_cuda_environment.py` - CUDA Environment Setup Script - configures GPU/CUDA environment for BGE-M3 acceleration, verifies NVIDIA drivers and CUDA toolkit, tests GPU operations and memory management for RTX 3070 Ti (8GB), validates BGE model GPU compatibility, and creates CUDA configuration with performance settings (✅ Task 2.5b completed)
 - `15_start_bge_service.py` - BGE Service Startup Script - starts BGE-M3 service container or direct service depending on environment, checks Docker and NVIDIA runtime availability, creates simplified startup script for immediate testing, validates service endpoints, and provides comprehensive setup summary with next steps (✅ Task 2.5c completed)
@@ -181,7 +182,9 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `14_run_quality_checks.py` - Quality Check Script - comprehensive quality assessment engine with metrics, scoring, and automated alerts (✅ renumbered)
 - `15_test_bge_service_basic.py` - BGE Service Basic Validation - dependency-free validation script for BGE service structure and configuration (✅ renumbered)
 - `16_generate_identity_embeddings.py` - Identity Embeddings Generation Script - generates BGE-M3 embeddings for all opportunities with batch processing (✅ renumbered)
-- `17_test_bge_service.py` - BGE Service Integration Test - comprehensive test suite with GPU acceleration validation and performance benchmarking (✅ renumbered)
+- `17_generate_context_embeddings.py` - Context Embeddings Generation Script - generates BGE-M3 context embeddings from rich business context (opportunity details, next activity, deal info) for semantic matching (✅ Task 2.7 completed)
+- `18_test_bge_service.py` - BGE Service Integration Test - comprehensive test suite with GPU acceleration validation and performance benchmarking (✅ renumbered)
+- `19_generate_all_embeddings.sh` - Complete Embedding Generation Pipeline - orchestrates both identity and context embedding generation with setup.sh-style colored output, real-time progress tracking, and comprehensive error handling for overnight processing (✅ Tasks 2.6 + 2.7 unified)
 
 ### 03-data/archived/
 - `01_discover_schemas.py` - ARCHIVED: Basic schema discovery from source databases

@@ -3,33 +3,18 @@ version: '3.8'
 services:
   bge-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../..
+      dockerfile: infrastructure/docker/bge-service/Dockerfile
     container_name: revops-bge-service
     restart: unless-stopped
     
-    # GPU Configuration for RTX 3070 Ti
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    
     # Environment Variables
     environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - CUDA_VISIBLE_DEVICES=0
-      - TORCH_CUDA_ARCH_LIST=8.6
-      - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:128
       - BGE_MODEL_PATH=/app/models/bge-m3
-      - BGE_CACHE_DIR=/app/cache
+      - BGE_SERVICE_PORT=8007
       - LOG_LEVEL=info
-      - SERVICE_PORT=8007
       - MAX_BATCH_SIZE=32
-      - GPU_MEMORY_FRACTION=0.9
+      - PYTHONUNBUFFERED=1
     
     # Port Mapping
     ports:
@@ -37,14 +22,12 @@ services:
     
     # Volume Mounts
     volumes:
-      # Mount the BGE service code
-      - ../../../backend/services/07-embeddings:/app/src:ro
-      # Mount model cache (if using external models)
-      - ../../../models:/app/models:rw
-      # Mount logs directory
-      - ./logs:/app/logs:rw
+      # Mount BGE models (already downloaded)
+      - ./models:/app/models:ro
+      # Mount logs directory  
+      - ./infrastructure/docker/bge-service/logs:/app/logs:rw
       # Mount cache directory
-      - ./cache:/app/cache:rw
+      - ./infrastructure/docker/bge-service/cache:/app/cache:rw
     
     # Health Check
     healthcheck:
@@ -66,9 +49,8 @@ services:
         max-file: "3"
     
     # Resource Limits
-    mem_limit: 6g
-    memswap_limit: 6g
-    shm_size: 2g
+    mem_limit: 4g
+    memswap_limit: 4g
 
 # Network Configuration
 networks:

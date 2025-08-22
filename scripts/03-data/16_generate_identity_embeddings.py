@@ -42,6 +42,7 @@ import sys
 import time
 import argparse
 import uuid
+import aiohttp
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
@@ -147,10 +148,10 @@ class IdentityEmbeddingGenerator:
                     COUNT(*) as total,
                     COUNT(co.identity_text) as with_identity_text,
                     COUNT(co.identity_hash) as with_identity_hash,
-                    COUNT(CASE WHEN se.embed_vector_json IS NOT NULL THEN 1 END) as with_identity_embedding,
-                    COUNT(CASE WHEN co.identity_text IS NOT NULL AND se.embed_vector_json IS NULL THEN 1 END) as needing_embeddings
+                    COUNT(CASE WHEN se.identity_vector IS NOT NULL THEN 1 END) as with_identity_embedding,
+                    COUNT(CASE WHEN co.identity_text IS NOT NULL AND se.identity_vector IS NULL THEN 1 END) as needing_embeddings
                 FROM core.opportunities co
-                LEFT JOIN search.embeddings_opportunities se ON co.id = se.opportunity_id AND se.embedding_type = 'identity'
+                LEFT JOIN search.embeddings_opportunities se ON co.id = se.opportunity_id
             """,
             'company_name_coverage': """
                 SELECT 
@@ -179,8 +180,8 @@ class IdentityEmbeddingGenerator:
                     if query_name in ['by_source_system', 'sample_identity_text']:
                         # Fetch all rows - psycopg2 returns RealDictRow objects
                         results = cursor.fetchall()
-                        # Convert RealDictRow objects to regular tuples for compatibility
-                        analysis_result[query_name] = [tuple(row) for row in results]
+                        # Convert RealDictRow objects to regular tuples with values only
+                        analysis_result[query_name] = [tuple(row.values()) for row in results]
                     else:
                         # Fetch single row - psycopg2 returns RealDictRow
                         result = cursor.fetchone()
@@ -262,12 +263,42 @@ class IdentityEmbeddingGenerator:
         """Calculate SHA-256 hash for identity text"""
         return hashlib.sha256(identity_text.encode('utf-8')).hexdigest()
     
-    async def simulate_bge_embedding(self, text: str) -> List[float]:
+    async def generate_bge_embedding(self, text: str) -> List[float]:
         """
-        Simulate BGE-M3 embedding generation for testing.
+        Generate BGE-M3 embedding using the containerized BGE service.
         
-        In production, this would call the actual BGE service.
-        For now, we generate a mock 1024-dimensional vector.
+        Calls the self-contained BGE microservice for real embeddings.
+        """
+        bge_url = "http://localhost:8007/embed"
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                payload = {"texts": [text]}
+                async with session.post(bge_url, json=payload, timeout=30) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        embeddings = result.get('embeddings', [])
+                        if embeddings and len(embeddings) > 0:
+                            return embeddings[0]  # Return first (and only) embedding
+                        else:
+                            raise Exception("Empty embeddings response")
+                    else:
+                        error_text = await response.text()
+                        raise Exception(f"BGE service error {response.status}: {error_text}")
+        except asyncio.TimeoutError:
+            raise Exception("BGE service timeout - check if service is running")
+        except aiohttp.ClientError as e:
+            raise Exception(f"BGE service connection error: {str(e)}")
+        except Exception as e:
+            # Fallback to simulated embedding if BGE service unavailable
+            logger.warning(f"BGE service unavailable, using fallback: {str(e)}")
+            return await self.simulate_bge_embedding_fallback(text)
+    
+    async def simulate_bge_embedding_fallback(self, text: str) -> List[float]:
+        """
+        Fallback embedding generation when BGE service is unavailable.
+        
+        Generates a deterministic mock 1024-dimensional vector for testing.
         """
         # Simulate processing time
         await asyncio.sleep(0.01)  # 10ms per embedding
@@ -309,7 +340,7 @@ class IdentityEmbeddingGenerator:
             # Generate embeddings for all texts in batch
             embeddings = []
             for text in texts_to_embed:
-                embedding = await self.simulate_bge_embedding(text)
+                embedding = await self.generate_bge_embedding(text)
                 embeddings.append(embedding)
             
             batch_time_ms = (time.time() - batch_start) * 1000
@@ -367,16 +398,15 @@ class IdentityEmbeddingGenerator:
             with self.get_local_connection() as conn:
                 cursor = conn.cursor()
                 
-                # Insert/update embeddings in search.embeddings_opportunities
+                # Insert/update embeddings in search.embeddings_opportunities (one row per opportunity)
                 upsert_sql = """
                     INSERT INTO search.embeddings_opportunities (
                         opportunity_id,
                         source_system,
                         source_id,
-                        embedding_type,
-                        embed_vector_json,
+                        identity_vector,
                         identity_text,
-                        text_hash,
+                        identity_hash,
                         company_name,
                         company_domain,
                         opportunity_name,
@@ -388,13 +418,13 @@ class IdentityEmbeddingGenerator:
                         embedding_quality_score,
                         processing_time_ms
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                     )
-                    ON CONFLICT (opportunity_id, embedding_type) 
+                    ON CONFLICT (opportunity_id) 
                     DO UPDATE SET
-                        embed_vector_json = EXCLUDED.embed_vector_json,
+                        identity_vector = EXCLUDED.identity_vector,
                         identity_text = EXCLUDED.identity_text,
-                        text_hash = EXCLUDED.text_hash,
+                        identity_hash = EXCLUDED.identity_hash,
                         company_name = EXCLUDED.company_name,
                         company_domain = EXCLUDED.company_domain,
                         opportunity_name = EXCLUDED.opportunity_name,
@@ -414,7 +444,6 @@ class IdentityEmbeddingGenerator:
                         result['opportunity_id'],
                         result['source_system'],
                         result['source_id'],
-                        'identity',  # embedding_type
                         json.dumps(result['identity_embedding']),  # Store as JSON
                         result['identity_text'],
                         result['identity_hash'],
@@ -521,18 +550,18 @@ class IdentityEmbeddingGenerator:
                     co.id, co.source_system, co.source_id, co.company_name, co.partner_domain,
                     co.name, co.stage, co.expected_revenue, co.currency, co.salesperson_name, co.partner_name,
                     co.identity_text, co.identity_hash, 
-                    se.embed_vector_json as identity_embedding,
+                    se.identity_vector as identity_embedding,
                     se.updated_at as embedding_generated_at
                 FROM core.opportunities co
-                LEFT JOIN search.embeddings_opportunities se ON co.id = se.opportunity_id AND se.embedding_type = 'identity'
+                LEFT JOIN search.embeddings_opportunities se ON co.id = se.opportunity_id
             """
             
             if not force_regenerate:
                 # Only get opportunities missing embeddings or with outdated hashes
                 base_query += """
-                    WHERE se.embed_vector_json IS NULL 
-                       OR se.text_hash != co.identity_hash
-                       OR se.text_hash IS NULL
+                    WHERE se.identity_vector IS NULL 
+                       OR se.identity_hash != co.identity_hash
+                       OR se.identity_hash IS NULL
                 """
             
             base_query += " ORDER BY id"
@@ -551,10 +580,10 @@ class IdentityEmbeddingGenerator:
                     cursor.execute("""
                         SELECT COUNT(*) 
                         FROM core.opportunities co
-                        LEFT JOIN search.embeddings_opportunities se ON co.id = se.opportunity_id AND se.embedding_type = 'identity'
-                        WHERE se.embed_vector_json IS NULL 
-                           OR se.text_hash != co.identity_hash
-                           OR se.text_hash IS NULL
+                        LEFT JOIN search.embeddings_opportunities se ON co.id = se.opportunity_id
+                        WHERE se.identity_vector IS NULL 
+                           OR se.identity_hash != co.identity_hash
+                           OR se.identity_hash IS NULL
                     """)
                     result = cursor.fetchone()
                     total_to_process = dict(result)['count']

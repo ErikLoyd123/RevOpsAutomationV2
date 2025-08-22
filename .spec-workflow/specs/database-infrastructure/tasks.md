@@ -65,7 +65,7 @@
   - _Requirement: 6, 7_
 
 - [x] 2.6 Add Identity/Context Embedding Fields to CORE Opportunities
-  - File: scripts/02-database/11_add_embedding_fields.py
+  - File: scripts/02-database/10_validate_tables.py (validation added), embedding fields already exist in schema
   - Add identity_text and context_text fields to core.opportunities table
   - Add identity_vector and context_vector fields for BGE-M3 dual embeddings
   - Update indexes and constraints for new embedding fields

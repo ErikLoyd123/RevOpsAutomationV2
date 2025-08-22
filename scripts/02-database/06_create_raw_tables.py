@@ -149,6 +149,141 @@ def get_table_stats(cursor):
     
     return table_columns
 
+def get_missing_apn_tables():
+    """Return CREATE TABLE statements for missing APN tables."""
+    return [
+        """CREATE TABLE IF NOT EXISTS raw.apn_cash_claim (
+            _raw_id SERIAL PRIMARY KEY,
+            _ingested_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+            _source_system character varying(50) DEFAULT 'apn'::character varying,
+            _sync_batch_id uuid,
+            id character varying NOT NULL,
+            funding_request_id character varying,
+            stage character varying,
+            planned_start_date timestamp with time zone,
+            planned_end_date timestamp with time zone,
+            planned_due_date timestamp with time zone,
+            percentage_completion integer,
+            expected_revenue_ramp integer,
+            mdf_activity_type character varying,
+            mdf_cost_of_activity integer,
+            mdf_requested_cash_funding integer,
+            mdf_funding_percentage integer,
+            mdf_projected_leads integer,
+            claim_amount integer,
+            aws_account character varying,
+            customer_sign_off_attached boolean,
+            actual_start_date timestamp with time zone,
+            actual_end_date timestamp with time zone,
+            production_date timestamp with time zone,
+            completed boolean,
+            invoice_scheduled_paid_date timestamp with time zone,
+            invoice_amount integer,
+            tenant character varying,
+            create_ts timestamp with time zone NOT NULL,
+            sync_ts timestamp with time zone,
+            write_ts timestamp with time zone
+        );""",
+        
+        """CREATE TABLE IF NOT EXISTS raw.apn_funding_request (
+            _raw_id SERIAL PRIMARY KEY,
+            _ingested_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+            _source_system character varying(50) DEFAULT 'apn'::character varying,
+            _sync_batch_id uuid,
+            id character varying NOT NULL,
+            stage character varying,
+            status character varying,
+            program character varying,
+            sub_program character varying,
+            funding_type character varying,
+            activity_name character varying,
+            approved_cash_amount integer,
+            cash_funding_amount integer,
+            total_cost_of_activity integer,
+            other_party_contribution integer,
+            partner_contribution integer,
+            business_description character varying,
+            aws_calculator_url character varying,
+            sandbox_design_win_activity character varying,
+            majority_public_sector boolean,
+            arn character varying,
+            project_aws_account character varying,
+            project_planned_start_date timestamp with time zone,
+            project_planned_end_date timestamp with time zone,
+            project_executed_country character varying,
+            project_type character varying,
+            project_customer_considering character varying,
+            project_annual_run_rate_for_misc integer,
+            project_workload_name character varying,
+            project_new_service_deployed boolean,
+            project_roi integer,
+            project_other_notes character varying,
+            project_extended_start_date timestamp with time zone,
+            project_extended_end_date timestamp with time zone,
+            project_extended_reason character varying,
+            total_mdf_cash_amount integer,
+            invoice_entity_name character varying,
+            invoice_remit_address character varying,
+            invoice_remit_country character varying,
+            po_number character varying,
+            po_amount integer,
+            po_issurance_date timestamp with time zone,
+            po_issured boolean,
+            po_approved_amount integer,
+            number_of_claims integer,
+            cr_value_per_code integer,
+            cr_number_of_codes integer,
+            cr_requested_amount integer,
+            cr_aws_account character varying,
+            cr_approved_amount integer,
+            cr_issued_amount integer,
+            cr_total_cost_of_activity integer,
+            cr_mdf_activity_type character varying,
+            pif_program_name character varying,
+            pif_funding_motion character varying,
+            owner_id character varying,
+            opportunity_id character varying,
+            tenant character varying,
+            create_ts timestamp with time zone NOT NULL,
+            sync_ts timestamp with time zone,
+            write_ts timestamp with time zone
+        );""",
+        
+        """CREATE TABLE IF NOT EXISTS raw.apn_funding_request_history (
+            _raw_id SERIAL PRIMARY KEY,
+            _ingested_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+            _source_system character varying(50) DEFAULT 'apn'::character varying,
+            _sync_batch_id uuid,
+            id character varying NOT NULL,
+            funding_request_id character varying,
+            sequence integer,
+            stage character varying,
+            action character varying,
+            date timestamp with time zone,
+            actor character varying,
+            comments_to_partner character varying,
+            comments_from_partner character varying,
+            details character varying,
+            tenant character varying,
+            create_ts timestamp with time zone NOT NULL,
+            sync_ts timestamp with time zone,
+            write_ts timestamp with time zone
+        );""",
+        
+        """CREATE TABLE IF NOT EXISTS raw.apn_users (
+            _raw_id SERIAL PRIMARY KEY,
+            _ingested_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+            _source_system character varying(50) DEFAULT 'apn'::character varying,
+            _sync_batch_id uuid,
+            id character varying NOT NULL,
+            name character varying NOT NULL,
+            tenant character varying,
+            create_ts timestamp with time zone NOT NULL,
+            sync_ts timestamp with time zone,
+            write_ts timestamp with time zone
+        );"""
+    ]
+
 def verify_raw_tables(cursor):
     """Verify all RAW tables were created correctly."""
     cursor.execute("""
@@ -219,8 +354,8 @@ def create_raw_tables():
             return False
         print("   ✓ RAW schema verified")
         
-        # Create tables
-        print(f"\n5. Creating tables...")
+        # Create Odoo tables
+        print(f"\n5. Creating Odoo tables...")
         tables_created = 0
         tables_skipped = 0
         
@@ -238,13 +373,31 @@ def create_raw_tables():
                 # Continue with next table
                 continue
         
+        # Create missing APN tables
+        print(f"\n6. Creating missing APN tables...")
+        apn_statements = get_missing_apn_tables()
+        
+        for statement in apn_statements:
+            table_name = extract_table_name(statement)
+            print(f"   Processing APN table '{table_name}'...")
+            
+            try:
+                if create_table(cursor, statement):
+                    tables_created += 1
+                else:
+                    tables_skipped += 1
+            except psycopg2.Error as e:
+                print(f"     ✗ Error creating APN table '{table_name}': {e}")
+                # Continue with next table
+                continue
+        
         print(f"\n   Summary:")
         print(f"     ✓ Tables created: {tables_created}")
         print(f"     ⚠ Tables skipped (already exist): {tables_skipped}")
         print(f"     🎯 Total processed: {tables_created + tables_skipped}")
         
         # Verify table creation
-        print(f"\n6. Verifying table creation...")
+        print(f"\n7. Verifying table creation...")
         tables = verify_raw_tables(cursor)
         
         if tables:

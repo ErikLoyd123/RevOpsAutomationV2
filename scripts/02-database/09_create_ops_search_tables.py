@@ -16,7 +16,7 @@ SEARCH Schema (Vector Embeddings):
 Key features:
 - Operational monitoring and audit capabilities
 - Vector search infrastructure for semantic matching
-- HNSW indexes for fast similarity search (384-dimensional BGE embeddings)
+- HNSW indexes for fast similarity search (1024-dimensional BGE-M3 embeddings)
 - Data quality and transformation tracking
 - Performance optimization through similarity caching
 
@@ -66,9 +66,9 @@ OPS_TABLES = {
 }
 
 SEARCH_TABLES = {
-    'embeddings': {
+    'embeddings_opportunities': {
         'description': 'BGE-M3 vector embeddings for semantic search',
-        'purpose': 'Store 384-dimensional BGE embeddings with HNSW indexing',
+        'purpose': 'Store 1024-dimensional BGE-M3 embeddings with HNSW indexing',
         'key_fields': ['embedding_id', 'source_table', 'source_id', 'embed_vector', 'text_content']
     },
     'similarity_cache': {
@@ -389,72 +389,56 @@ def create_normalization_jobs_table(cursor):
 def create_embeddings_opportunities_table(cursor, pgvector_available=False):
     """Create the search.embeddings_opportunities table for BGE vector embeddings."""
     
-    # Base table structure
+    # Consolidated table structure - ONE row per opportunity with BOTH vectors
     base_sql = """
     CREATE TABLE IF NOT EXISTS search.embeddings_opportunities (
         -- Primary Keys and References
         embedding_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        opportunity_id UUID NOT NULL,
+        opportunity_id INTEGER NOT NULL UNIQUE,
         
         -- Source System Information  
         source_system VARCHAR(20) NOT NULL CHECK (source_system IN ('odoo', 'apn')),
         source_id VARCHAR(255) NOT NULL,
         
-        -- Embedding Types
-        embedding_type VARCHAR(50) NOT NULL CHECK (embedding_type IN ('identity', 'context')),
-        embedding_model VARCHAR(100) NOT NULL DEFAULT 'BGE-M3',
-        embedding_version VARCHAR(20) DEFAULT '1.0',"""
+        -- Embedding Vectors (Both in same row!)
+        identity_vector TEXT,  -- BGE-M3 embedding for identity_text
+        context_vector TEXT,   -- BGE-M3 embedding for context_text
+        
+        -- Text Content
+        identity_text TEXT,
+        context_text TEXT,
+        
+        -- Hash Values (Specific to each text type)
+        identity_hash VARCHAR(64),
+        context_hash VARCHAR(64),"""
     
-    # Vector column - depends on pgvector availability  
-    if pgvector_available:
-        vector_sql = """
+    # Vector metadata section
+    vector_sql = """
         
-        -- BGE-M3 vector embeddings (1024 dimensions for BGE-M3)
-        embed_vector VECTOR(1024),  -- Updated to 1024 dimensions for proper BGE-M3
-        vector_norm DECIMAL(10,6),"""
-        vector_constraint = "CHECK (embed_vector IS NOT NULL)"
-    else:
-        vector_sql = """
-        
-        -- BGE-M3 vector embeddings (stored as JSON when pgvector not available)
-        embed_vector_json TEXT,  -- JSON array representation of 1024-dimensional vector
-        vector_norm DECIMAL(10,6),"""
-        vector_constraint = "CHECK (embed_vector_json IS NOT NULL)"
+        -- Vector Metadata
+        vector_norm NUMERIC(10,6),  -- For vector magnitude calculations"""
     
     # Rest of table structure with broken-out metadata fields
     rest_sql = f"""
-        
-        -- Text Content (Denormalized for Readability)
-        identity_text TEXT,
-        context_text TEXT,
-        text_hash VARCHAR(64) NOT NULL,
-        
-        -- Broken-out Metadata Fields (instead of generic JSONB)
+        -- Metadata Fields (Broken out from text content)
         company_name VARCHAR(500),
         company_domain VARCHAR(255),
         opportunity_name VARCHAR(500),
         opportunity_stage VARCHAR(100),
-        opportunity_value DECIMAL(15,2),
-        opportunity_currency VARCHAR(3) DEFAULT 'USD',
+        opportunity_value NUMERIC(15,2),
+        opportunity_currency VARCHAR(10),
         salesperson_name VARCHAR(255),
         partner_name VARCHAR(255),
         
-        -- Quality and Processing
-        embedding_quality_score DECIMAL(5,4),
+        -- Model Information
+        embedding_model VARCHAR(100) NOT NULL DEFAULT 'BAAI/bge-m3',
+        embedding_version VARCHAR(20) DEFAULT '1.0',
+        
+        -- Processing Metadata (Moved to bottom)
+        embedding_quality_score NUMERIC(3,2) CHECK (embedding_quality_score BETWEEN 0 AND 1),
         processing_time_ms INTEGER,
-        
-        -- Timestamps
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        
-        -- Constraints
-        UNIQUE(opportunity_id, embedding_type),
-        CHECK (
-            (embedding_type = 'identity' AND identity_text IS NOT NULL) OR
-            (embedding_type = 'context' AND context_text IS NOT NULL)
-        ),
-        CHECK (embedding_quality_score IS NULL OR embedding_quality_score BETWEEN 0 AND 1),
-        {vector_constraint}
+        created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
     );"""
     
     # Combine SQL
@@ -486,38 +470,38 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
     cursor.execute("""
     CREATE INDEX idx_embeddings_opportunities_opportunity_id ON search.embeddings_opportunities(opportunity_id);
     CREATE INDEX idx_embeddings_opportunities_source_system ON search.embeddings_opportunities(source_system);
-    CREATE INDEX idx_embeddings_opportunities_embedding_type ON search.embeddings_opportunities(embedding_type);
     CREATE INDEX idx_embeddings_opportunities_company_name ON search.embeddings_opportunities(company_name);
-    CREATE INDEX idx_embeddings_opportunities_text_hash ON search.embeddings_opportunities(text_hash);
+    CREATE INDEX idx_embeddings_opportunities_identity_hash ON search.embeddings_opportunities(identity_hash);
+    CREATE INDEX idx_embeddings_opportunities_context_hash ON search.embeddings_opportunities(context_hash);
     CREATE INDEX idx_embeddings_opportunities_created_at ON search.embeddings_opportunities(created_at);
     CREATE INDEX idx_embeddings_opportunities_quality ON search.embeddings_opportunities(embedding_quality_score);
     
     -- Composite indexes for common queries
-    CREATE INDEX idx_embeddings_opportunities_source_type ON search.embeddings_opportunities(source_system, embedding_type);
     CREATE INDEX idx_embeddings_opportunities_source_company ON search.embeddings_opportunities(source_system, company_name);
+    CREATE INDEX idx_embeddings_opportunities_vectors ON search.embeddings_opportunities(opportunity_id) WHERE identity_vector IS NOT NULL AND context_vector IS NOT NULL;
     """)
     
     # Add comments for documentation
     cursor.execute("""
-    COMMENT ON TABLE search.embeddings IS 'BGE-M3 vector embeddings for semantic search and similarity matching';
+    COMMENT ON TABLE search.embeddings_opportunities IS 'BGE-M3 vector embeddings for semantic search and similarity matching';
     """)
     
     if pgvector_available:
         cursor.execute("""
-        COMMENT ON COLUMN search.embeddings.embed_vector IS '384-dimensional BGE embedding vector';
+        COMMENT ON COLUMN search.embeddings_opportunities.embed_vector IS '1024-dimensional BGE-M3 embedding vector';
         """)
     else:
         cursor.execute("""
-        COMMENT ON COLUMN search.embeddings.embed_vector_json IS '384-dimensional BGE embedding vector as JSON array (pgvector not available)';
+        COMMENT ON COLUMN search.embeddings_opportunities.embed_vector_json IS '1024-dimensional BGE-M3 embedding vector as JSON array (pgvector not available)';
         """)
     
     cursor.execute("""
-    COMMENT ON COLUMN search.embeddings.text_hash IS 'SHA-256 hash of text content for deduplication';
-    COMMENT ON COLUMN search.embeddings.embedding_type IS 'Type of text embedded: identity, context, description, etc.';
-    COMMENT ON COLUMN search.embeddings.vector_norm IS 'L2 norm of the embedding vector for quality assessment';
+    COMMENT ON COLUMN search.embeddings_opportunities.text_hash IS 'SHA-256 hash of text content for deduplication';
+    COMMENT ON COLUMN search.embeddings_opportunities.embedding_type IS 'Type of text embedded: identity, context, description, etc.';
+    COMMENT ON COLUMN search.embeddings_opportunities.vector_norm IS 'L2 norm of the embedding vector for quality assessment';
     """)
     
-    return "search.embeddings"
+    return "search.embeddings_opportunities"
 
 def create_similarity_cache_table(cursor):
     """Create the search.similarity_cache table for precomputed similarity scores."""
@@ -527,8 +511,8 @@ def create_similarity_cache_table(cursor):
         cache_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         
         -- Embedding references
-        source_embedding_id UUID NOT NULL REFERENCES search.embeddings(embedding_id) ON DELETE CASCADE,
-        target_embedding_id UUID NOT NULL REFERENCES search.embeddings(embedding_id) ON DELETE CASCADE,
+        source_embedding_id UUID NOT NULL REFERENCES search.embeddings_opportunities(embedding_id) ON DELETE CASCADE,
+        target_embedding_id UUID NOT NULL REFERENCES search.embeddings_opportunities(embedding_id) ON DELETE CASCADE,
         
         -- Similarity metrics
         similarity_score DECIMAL(8,6) NOT NULL CHECK (similarity_score >= -1 AND similarity_score <= 1),
@@ -720,6 +704,9 @@ def create_ops_search_tables():
         )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
+        
+        # Set search path to include public first (for vector type access)
+        cursor.execute("SET search_path = public, raw, core, search, ops")
         print("   ✓ Connected successfully")
         
         # Verify required schemas exist
@@ -780,18 +767,18 @@ def create_ops_search_tables():
         search_tables_created = 0
         search_tables_skipped = 0
         
-        # Create embeddings table with pgvector parameter
-        print(f"\n   Creating SEARCH table 'embeddings'...")
+        # Create embeddings_opportunities table with pgvector parameter
+        print(f"\n   Creating SEARCH table 'embeddings_opportunities'...")
         try:
-            if check_table_exists(cursor, 'search', 'embeddings'):
-                print(f"     ⚠ Table 'search.embeddings' already exists - skipping")
+            if check_table_exists(cursor, 'search', 'embeddings_opportunities'):
+                print(f"     ⚠ Table 'search.embeddings_opportunities' already exists - skipping")
                 search_tables_skipped += 1
             else:
                 create_embeddings_opportunities_table(cursor, pgvector_available)
-                print(f"     ✓ Created table 'search.embeddings'")
+                print(f"     ✓ Created table 'search.embeddings_opportunities'")
                 search_tables_created += 1
         except psycopg2.Error as e:
-            print(f"     ✗ Error creating table 'embeddings': {e}")
+            print(f"     ✗ Error creating table 'embeddings_opportunities': {e}")
         
         # Create similarity_cache table
         print(f"\n   Creating SEARCH table 'similarity_cache'...")
@@ -857,7 +844,7 @@ def create_ops_search_tables():
         print(f"\n8. Testing table access and constraints...")
         test_queries = [
             ("ops.sync_jobs", "SELECT COUNT(*) FROM ops.sync_jobs"),
-            ("search.embeddings", "SELECT COUNT(*) FROM search.embeddings")
+            ("search.embeddings_opportunities", "SELECT COUNT(*) FROM search.embeddings_opportunities")
         ]
         
         for table_name, query in test_queries:
@@ -909,10 +896,10 @@ def create_ops_search_tables():
         print("  • Comprehensive data quality monitoring")
         print("  • Complete data transformation lineage")
         if pgvector_available:
-            print("  • 384-dimensional BGE vector embeddings with pgvector")
+            print("  • 1024-dimensional BGE-M3 vector embeddings with pgvector")
             print("  • HNSW indexes for fast similarity search")
         else:
-            print("  • 384-dimensional BGE vector embeddings (JSON storage)")
+            print("  • 1024-dimensional BGE-M3 vector embeddings (JSON storage)")
             print("  • Ready for pgvector upgrade when extension is enabled")
         print("  • Similarity score caching for performance")
         

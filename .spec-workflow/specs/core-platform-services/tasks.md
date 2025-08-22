@@ -55,7 +55,7 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - Validate embedding quality and dimensions
   - _Prerequisites: 2.4_
 
-- [ ] 2.5a Download and Configure BGE-M3 Model
+- [x] 2.5a Download and Configure BGE-M3 Model
   - File: scripts/02-database/setup_bge_model.py
   - Download BGE-M3 model weights from Hugging Face (~2GB)
   - Configure model cache directory in /models/bge-m3
@@ -64,7 +64,7 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - _Prerequisites: 2.5_
   - _Requirement: 2_
 
-- [ ] 2.5b Configure GPU/CUDA Environment
+- [x] 2.5b Configure GPU/CUDA Environment
   - File: scripts/02-database/setup_cuda_environment.py
   - Install CUDA toolkit 11.8+ and cuDNN libraries
   - Configure PyTorch with GPU support (torch.cuda.is_available())
@@ -74,7 +74,7 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - _Prerequisites: 2.5a_
   - _Requirement: 2_
 
-- [ ] 2.5c Start BGE Service Container
+- [x] 2.5c Start BGE Service Container
   - File: infrastructure/docker/bge-service/docker-compose.yml
   - Build BGE service Docker container with GPU passthrough
   - Configure NVIDIA Docker runtime for GPU access
@@ -93,15 +93,15 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
 **Goal:** Create embeddings for all 7,937 existing opportunities in the database.
 
 - [x] 2.6 Generate Identity Embeddings for Opportunities
-  - File: scripts/03-data/17_generate_identity_embeddings.py
-  - Process all core.opportunities records (3,121 Odoo + 4,816 APN)
+  - File: scripts/03-data/16_generate_identity_embeddings.py
+  - Process all core.opportunities records (~3,121 Odoo + ~4,816 APN) 
   - Create identity embeddings from company_name + company_domain
   - Store in search.embeddings_opportunities table with metadata
   - **Note:** Currently generates simulated embeddings. Requires tasks 2.5a-c for real BGE-M3 embeddings
   - _Prerequisites: 2.5c (for real embeddings) or Phase 1 (for simulated)_
 
 - [ ] 2.7 Generate Context Embeddings for Opportunities
-  - File: scripts/03-data/18_generate_context_embeddings.py
+  - File: scripts/03-data/17_generate_context_embeddings.py (change 17_test_bge_service_basic.py to number 18 and ensure all scripts correctly reference it since the name change, make sure its compliant with SCRIPT_REGISTRY.md)
   - Extract descriptions, notes, and business context from opportunities
   - Create rich context embeddings using real BGE-M3 model
   - Store in search.embeddings_opportunities with embedding_type='context'
