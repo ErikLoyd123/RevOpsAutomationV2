@@ -50,7 +50,7 @@ from core.config import get_settings
 class BillingNormalizer:
     """Normalizes RAW billing data to CORE schema following successful patterns."""
     
-    def __init__(self, batch_size: int = 1000):
+    def __init__(self, batch_size: int = 10000):
         """Initialize normalizer with database connection."""
         self.db_manager = get_database_manager()
         self.batch_size = batch_size

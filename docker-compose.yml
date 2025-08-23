@@ -308,7 +308,7 @@ services:
     profiles:
       - gpu
       - prod
-    # runtime: nvidia  # Commented out for testing without GPU
+    runtime: nvidia  # GPU acceleration enabled
     environment:
       # NVIDIA GPU Configuration
       NVIDIA_VISIBLE_DEVICES: "0"
@@ -316,7 +316,7 @@ services:
       CUDA_VISIBLE_DEVICES: "0"
       
       # BGE Service Configuration
-      BGE_MAX_BATCH_SIZE: ${BGE_BATCH_SIZE:-32}
+      BGE_MAX_BATCH_SIZE: ${BGE_BATCH_SIZE:-64}
       BGE_MAX_SEQUENCE_LENGTH: ${BGE_MAX_SEQUENCE:-8192}
       
       # Performance Tuning for RTX 3070 Ti
@@ -347,45 +347,45 @@ services:
         limits:
           memory: 6G
           cpus: '4.0'
-    command: >
-      bash -c "
-      pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu118 torch sentence-transformers flask requests &&
-      python3 -c '
-import flask
-from flask import Flask, request, jsonify
-from sentence_transformers import SentenceTransformer
-import torch
-
-app = Flask(__name__)
-model = SentenceTransformer(\"BAAI/bge-m3\")
-print(f\"BGE-M3 loaded. CUDA: {torch.cuda.is_available()}\")
-
-def health():
-    return jsonify({
-        \"status\": \"healthy\",
-        \"cuda\": torch.cuda.is_available(),
-        \"model\": \"BAAI/bge-m3\",
-        \"device\": str(model.device)
-    })
-
-def embed():
-    if not request.json or \"texts\" not in request.json:
-        return jsonify({\"error\": \"texts required\"}), 400
-    
-    texts = request.json[\"texts\"]
-    embeddings = model.encode(texts, normalize_embeddings=True).tolist()
-    
-    return jsonify({
-        \"embeddings\": embeddings,
-        \"dimension\": len(embeddings[0]) if embeddings else 1024,
-        \"count\": len(embeddings)
-    })
-
-app.add_url_rule(\"/health\", \"health\", health, methods=[\"GET\"])
-app.add_url_rule(\"/embed\", \"embed\", embed, methods=[\"POST\"])
-app.run(host=\"0.0.0.0\", port=8007)
-'
-      "
+    command:
+      - bash
+      - -c
+      - |
+        pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu118 torch sentence-transformers flask requests &&
+        python3 -c "
+        import torch
+        from flask import Flask, request, jsonify
+        from sentence_transformers import SentenceTransformer
+        
+        app = Flask(__name__)
+        model = SentenceTransformer('BAAI/bge-m3')
+        print(f'BGE-M3 loaded. CUDA: {torch.cuda.is_available()}')
+        
+        @app.route('/health', methods=['GET'])
+        def health():
+            return jsonify({
+                'status': 'healthy',
+                'cuda': torch.cuda.is_available(),
+                'model': 'BAAI/bge-m3',
+                'device': str(model.device)
+            })
+        
+        @app.route('/embed', methods=['POST'])
+        def embed():
+            if not request.json or 'texts' not in request.json:
+                return jsonify({'error': 'texts required'}), 400
+            
+            texts = request.json['texts']
+            embeddings = model.encode(texts, normalize_embeddings=True).tolist()
+            
+            return jsonify({
+                'embeddings': embeddings,
+                'dimension': len(embeddings[0]) if embeddings else 1024,
+                'count': len(embeddings)
+            })
+        
+        app.run(host='0.0.0.0', port=8007)
+        "
     labels:
       - "com.revops.service=embeddings"
       - "com.revops.gpu=required"
@@ -431,10 +431,12 @@ app.run(host=\"0.0.0.0\", port=8007)
       - "com.revops.environment=${ENVIRONMENT:-development}"
 
   # ---------------------------------------------------------------------------
-  # Opportunity Matching Service (Placeholder)
+  # Enhanced Opportunity Matching Service with RRF Fusion
   # ---------------------------------------------------------------------------
   matching-service:
-    image: python:3.10-slim
+    build:
+      context: ./backend/services/08-matching
+      dockerfile: Dockerfile
     container_name: revops-matching-service
     restart: unless-stopped
     profiles:
@@ -445,9 +447,16 @@ app.run(host=\"0.0.0.0\", port=8007)
       REDIS_URL: redis://redis:6379/2
       BGE_SERVICE_URL: http://bge-service:8007
       SERVICE_PORT: 8008
-      SERVICE_NAME: opportunity-matching
+      SERVICE_NAME: enhanced-opportunity-matching
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      
+      # RRF Configuration
+      RRF_K_VALUE: ${RRF_K_VALUE:-60.0}
+      RRF_SEMANTIC_WEIGHT: ${RRF_SEMANTIC_WEIGHT:-0.35}
+      RRF_FUZZY_WEIGHT: ${RRF_FUZZY_WEIGHT:-0.25}
+      RRF_DOMAIN_WEIGHT: ${RRF_DOMAIN_WEIGHT:-0.25}
+      RRF_CONTEXT_WEIGHT: ${RRF_CONTEXT_WEIGHT:-0.15}
     volumes:
       - ./backend/services/08-matching:/app/src
       - app_logs:/app/logs
@@ -463,7 +472,12 @@ app.run(host=\"0.0.0.0\", port=8007)
         condition: service_healthy
       bge-service:
         condition: service_healthy
-    command: ["python", "-c", "import time; time.sleep(999999)"]  # Placeholder
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - "com.revops.service=matching"
       - "com.revops.environment=${ENVIRONMENT:-development}"

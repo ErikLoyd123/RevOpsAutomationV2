@@ -1,0 +1,26 @@
+APN_ID,APN_Name,APN_Partner,APN_Value,Rank,Odoo_ID,Odoo_Name,Odoo_Partner,Odoo_Value,Context_Similarity,Identity_Similarity,Company_Fuzzy,Overall_Score
+O4952881,Wondera | 3YR $7M EDP #TopDeal,Bill Dafflon,9000000.00,1,40914,Wondera.io - Sales Broker - Contract - RND Inference Training Migration to AWS,Bill Dafflon,150000.00,0.567,0.649,1.000,0.721
+O4952881,Wondera | 3YR $7M EDP #TopDeal,Bill Dafflon,9000000.00,2,43046,Wondera.io - Sales Broker - Contract - LLM Inference Training Migration Assessment,Bill Dafflon,0,0.554,0.649,1.000,0.716
+O4952881,Wondera | 3YR $7M EDP #TopDeal,Bill Dafflon,9000000.00,3,40483,Wondera.io - SB - Funding Only - MAP Mobilize: RND Inference Training Migration to AWS,Bill Dafflon,0,0.481,0.649,1.000,0.687
+O4952881,Wondera | 3YR $7M EDP #TopDeal,Bill Dafflon,9000000.00,4,38722,Wondera.io - SB - Funding Only - MAP Assess: LLM Inference Training Migration,Bill Dafflon,0,0.481,0.649,1.000,0.687
+O4952881,Wondera | 3YR $7M EDP #TopDeal,Bill Dafflon,9000000.00,5,40482,Wondera.io - SB - Funding Only - MAP Assess: RND Inference Training Migration to AWS,Bill Dafflon,20000.00,0.477,0.649,1.000,0.685
+O1025516,Olympusat Inc. - 2YR $5MM EDP,Peter Savov,5000000.00,1,31412,"Olympusat, Inc. - MAP Assess Plan - Media Storage and Disaster Recovery",Peter Savov,0,0.590,0.852,1.000,0.792
+O1025516,Olympusat Inc. - 2YR $5MM EDP,Peter Savov,5000000.00,2,32257,"Olympusat, Inc. - WAR - Caching System",Jeremy Simkins,5000.00,0.614,0.852,0.320,0.597
+O1025516,Olympusat Inc. - 2YR $5MM EDP,Peter Savov,5000000.00,3,30866,"Olympusat, Inc. - WAR - Security Focus",Jeremy Simkins,5000.00,0.580,0.852,0.320,0.583
+O1025516,Olympusat Inc. - 2YR $5MM EDP,Peter Savov,5000000.00,4,33873,SmartSuite - Managed Services - Managed Services 20 Hours,Peter Novosel,0,0.409,0.447,0.670,0.499
+O1025516,Olympusat Inc. - 2YR $5MM EDP,Peter Savov,5000000.00,5,33874,SmartSuite - Custom Projects - WAR Remediations ,Peter Novosel,5000.00,0.359,0.447,0.670,0.479
+O1027506,Launch Potato - 2YR $2.1MM EDP,Ryan Van Horn,2100000.00,1,31410,Launch Potato [WAR] Well-Architected Review,Ryan Van Horn,5000.00,0.658,0.865,1.000,0.823
+O1027506,Launch Potato - 2YR $2.1MM EDP,Ryan Van Horn,2100000.00,2,28883,Lassen Peak - WAR - Well-Architected Review,Ryan Kearny,5000.00,0.472,0.376,0.670,0.503
+O1027506,Launch Potato - 2YR $2.1MM EDP,Ryan Van Horn,2100000.00,3,43818,Expected Parrot - ProServ - Bedrock Enhancements,Robin Horton,0,0.473,0.419,0.560,0.483
+O1027506,Launch Potato - 2YR $2.1MM EDP,Ryan Van Horn,2100000.00,4,28892,Sales Impact Academy [WAR] Well Architected Review,Ryan Scheuermann,5000.00,0.474,0.411,0.550,0.478
+O1027506,Launch Potato - 2YR $2.1MM EDP,Ryan Van Horn,2100000.00,5,28177,Tech-Enlight [WAR] Well-Architected Review,Rabani Noorzai,5000.00,0.472,0.500,0.440,0.471
+O1197790,RightRev - 2YR EDP,Sreedhar Alluri,1900000.00,1,31675,RightRev - MAP Assess Plan - Production Environment Deployment,Sreedhar Alluri,0,0.529,0.842,1.000,0.764
+O1197790,RightRev - 2YR EDP,Sreedhar Alluri,1900000.00,2,31904,RightRev - Custom Projects - AWS SSO Replacement,Sreedhar Alluri,5000.00,0.509,0.842,1.000,0.756
+O1197790,RightRev - 2YR EDP,Sreedhar Alluri,1900000.00,3,32813,RightRev [Custom Projects] MAP Mobilize: Production Environment Deployment and Modernization,Sreedhar Alluri,0,0.504,0.842,1.000,0.754
+O1197790,RightRev - 2YR EDP,Sreedhar Alluri,1900000.00,4,32954,RightRev - Hosting - RightRev [Hosting],Dan Miller,0,0.591,0.842,0.400,0.609
+O1197790,RightRev - 2YR EDP,Sreedhar Alluri,1900000.00,5,31275,RightRev - WAR - Well-Architected Review,Saravanan Arumugam,5000.00,0.543,0.842,0.360,0.578
+O6600401,Matter Intellegence - Ground Station - Migration #extmig #map,Nathan Stein,854219.00,1,44365,Matter Intelligence - Assess - Ground Station Deployment,Nathan Stein,100000.00,0.725,0.850,1.000,0.845
+O6600401,Matter Intellegence - Ground Station - Migration #extmig #map,Nathan Stein,854219.00,2,43936,Matter Solutions - Assess - Ground Station Deployment,Nathan Stein,0,0.665,0.850,1.000,0.821
+O6600401,Matter Intellegence - Ground Station - Migration #extmig #map,Nathan Stein,854219.00,3,27465,Yard View [Custom Projects] Create Best Practices AWS Infrastructure for DB Migration,Nathan J. Harris,0,0.553,0.407,0.570,0.514
+O6600401,Matter Intellegence - Ground Station - Migration #extmig #map,Nathan Stein,854219.00,4,28776,Inverge [Zenveus] POS Application Development,Nathan Oertel,0,0.414,0.376,0.720,0.494
+O6600401,Matter Intellegence - Ground Station - Migration #extmig #map,Nathan Stein,854219.00,5,31907,Inverge - Managed Services - MSP 5 Hours,Nathan Oertel,0,0.413,0.376,0.720,0.494

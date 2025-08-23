@@ -1,0 +1,48 @@
+# Enhanced Matching Engine Dependencies
+# 
+# Core dependencies for RRF fusion matching service with 4-method approach:
+# - Method 1: Semantic similarity using BGE embeddings
+# - Method 2: Company name fuzzy matching  
+# - Method 3: Domain exact matching
+# - Method 4: Business context similarity
+
+# FastAPI and web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Database and PostgreSQL
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# HTTP client for BGE service integration
+httpx==0.25.2
+aiohttp==3.9.1
+
+# Text processing and fuzzy matching
+fuzzywuzzy==0.18.0
+python-levenshtein==0.21.1
+rapidfuzz==3.5.2
+
+# Numerical and scientific computing
+numpy==1.24.3
+pandas==2.1.4
+
+# Logging and configuration
+structlog==23.2.0
+python-dotenv==1.0.0
+
+# Data validation and utilities
+validators==0.22.0
+tldextract==5.1.1
+
+# Statistical and ranking functions
+scipy==1.11.4
+
+# Testing dependencies
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2
+
+# Development dependencies
+python-multipart==0.0.6

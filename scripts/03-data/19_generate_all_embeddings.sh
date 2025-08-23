@@ -9,7 +9,7 @@
 #   ./scripts/03-data/19_generate_all_embeddings.sh --identity-only     # Identity embeddings only
 #   ./scripts/03-data/19_generate_all_embeddings.sh --context-only      # Context embeddings only
 #   ./scripts/03-data/19_generate_all_embeddings.sh --force-regenerate  # Force regenerate all
-#   ./scripts/03-data/19_generate_all_embeddings.sh --batch-size 64     # Custom batch size
+#   ./scripts/03-data/19_generate_all_embeddings.sh --batch-size 16     # Custom batch size
 #   ./scripts/03-data/19_generate_all_embeddings.sh --status            # Show status only
 #
 # What this does:
@@ -35,7 +35,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration variables
-BATCH_SIZE=32
+BATCH_SIZE=16
 FORCE_REGENERATE=false
 IDENTITY_ONLY=false
 CONTEXT_ONLY=false
@@ -102,7 +102,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  (none)                Complete pipeline (identity + context)"
-            echo "  --batch-size N        Custom batch size (default: 32)"
+            echo "  --batch-size N        Custom batch size (default: 16)"
             echo "  --force-regenerate    Force regenerate all embeddings"
             echo "  --identity-only       Generate only identity embeddings (Task 2.6)"
             echo "  --context-only        Generate only context embeddings (Task 2.7)"
@@ -110,7 +110,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Examples:"
             echo "  ./scripts/03-data/19_generate_all_embeddings.sh                    # Complete pipeline"
-            echo "  ./scripts/03-data/19_generate_all_embeddings.sh --batch-size 64    # Custom batch size"
+            echo "  ./scripts/03-data/19_generate_all_embeddings.sh --batch-size 16    # Custom batch size"
             echo "  ./scripts/03-data/19_generate_all_embeddings.sh --identity-only    # Identity only"
             echo "  ./scripts/03-data/19_generate_all_embeddings.sh --force-regenerate # Regenerate all"
             echo ""

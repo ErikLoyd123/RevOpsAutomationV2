@@ -87,7 +87,7 @@ class OpportunityTransformer:
             'source_table': 'raw.odoo_crm_lead',
             'target_table': 'core.opportunities',
             'source_system': 'odoo',
-            'batch_size': 500,
+            'batch_size': 5000,
             'description': 'Transform Odoo CRM leads to normalized opportunities'
         }
         
@@ -95,7 +95,7 @@ class OpportunityTransformer:
             'source_table': 'raw.apn_opportunity',
             'target_table': 'core.opportunities', 
             'source_system': 'apn',
-            'batch_size': 500,
+            'batch_size': 5000,
             'description': 'Transform APN opportunities to normalized opportunities'
         }
 
@@ -207,7 +207,7 @@ class OpportunityTransformer:
             'odoo' as source_system,
             
             -- Basic opportunity information
-            ol.name,
+            ol.name,  -- Opportunity name
             ol.description,
             
             -- Partner/Company information (resolved from res_partner)
@@ -228,6 +228,10 @@ class OpportunityTransformer:
             oca.c_aws_account_name as aws_account_name,  -- JOIN to raw.odoo_c_aws_accounts
             ol."c_aws_ace_useCase" as aws_use_case,
             
+            -- Business classification fields
+            cv.name as industry,  -- Map from vertical_ids via relationship table
+            ct.name as opportunity_type,  -- Map from crm_team name
+            
             -- Team and assignment (resolved from crm_team and res_users)
             ct.name as sales_team,
             rp_user.name as salesperson_name,  -- Resolved via res_users -> res_partner
@@ -245,17 +249,10 @@ class OpportunityTransformer:
                 NULLIF(TRIM(rp.website), '')
             )) as identity_text,
             
-            -- Build context text for rich business understanding (skips NULL/empty values)
+            -- Build context text for rich business understanding (simplified, skips NULL/empty values)
             LOWER(CONCAT_WS(' | ',
                 NULLIF(TRIM(ol.name), ''),
-                NULLIF(TRIM(ol.description), ''),
-                NULLIF(TRIM(cs.name), ''),
-                NULLIF(TRIM(CAST(ol."c_aws_ace_useCase" as VARCHAR)), ''),
-                NULLIF(TRIM(ol.origination), ''),
-                NULLIF(TRIM(ol."c_aws_ace_aWSPartnerSuccessManagerName"), ''),
-                NULLIF(TRIM(ol."c_aws_ace_aWSSalesRepName"), ''),
-                NULLIF(TRIM(CAST(ol.aws_ace_id as VARCHAR)), ''),
-                NULLIF(TRIM(rp.email), '')
+                NULLIF(TRIM(CAST(ol."c_aws_ace_useCase" as VARCHAR)), '')
             )) as context_text,
             
             -- POD (Partner Originated Discount) fields (APN-only)
@@ -284,6 +281,8 @@ class OpportunityTransformer:
         LEFT JOIN raw.odoo_res_users ru ON ol.user_id = ru.id
         LEFT JOIN raw.odoo_res_partner rp_user ON ru.partner_id = rp_user.id
         LEFT JOIN raw.odoo_c_aws_accounts oca ON ol.aws_ace_id = oca.id
+        LEFT JOIN raw.odoo_c_vertical_res_partner_rel cvr ON rp.id = cvr.res_partner_id
+        LEFT JOIN raw.odoo_c_vertical cv ON cvr.c_vertical_id = cv.id
         WHERE ol.id > %s
         ORDER BY ol.id
         LIMIT %s
@@ -298,7 +297,7 @@ class OpportunityTransformer:
             'apn' as source_system,
             
             -- Basic opportunity information  
-            ao.name,
+            ao.partner_project_title as name,  -- Use project title as opportunity name (not company name)
             ao.project_description_business_need as description,
             
             -- Partner/Company information (APN has direct fields)
@@ -327,6 +326,10 @@ class OpportunityTransformer:
             ca.account_name as aws_account_name,  -- JOIN to core.aws_accounts
             ao.use_case as aws_use_case,
             
+            -- Business classification fields
+            ao.industry as industry,
+            ao.delivery_model as opportunity_type,
+            
             -- Team and assignment 
             NULL as sales_team,
             u.name as salesperson_name,
@@ -348,19 +351,10 @@ class OpportunityTransformer:
                 END), '')
             )) as identity_text,
             
-            -- Build context text for rich business understanding (skips NULL/empty values)
+            -- Build context text for rich business understanding (simplified, skips NULL/empty values)
             LOWER(CONCAT_WS(' | ',
-                NULLIF(TRIM(ao.name), ''),
-                NULLIF(TRIM(ao.project_description_business_need), ''),
-                NULLIF(TRIM(ao.stage_name), ''),
-                NULLIF(TRIM(ao.use_case), ''),
-                NULLIF(TRIM(ao.opportunity_type), ''),
-                NULLIF(TRIM(ao.delivery_model), ''),
-                NULLIF(TRIM(ao.industry), ''),
-                NULLIF(TRIM(ao.partner_acceptance_status), ''),
-                NULLIF(TRIM(ao.aws_account), ''),
-                NULLIF(TRIM(ao.customer_email), ''),
-                NULLIF(TRIM(u.name), '')
+                NULLIF(TRIM(ao.partner_project_title), ''),  -- Add project title (opportunity name)
+                NULLIF(TRIM(ao.project_description_business_need), '')
             )) as context_text,
             
             -- POD (Partner Originated Discount) fields
@@ -423,6 +417,7 @@ class OpportunityTransformer:
                     partner_name, partner_email, partner_phone, partner_domain, company_name,
                     stage, probability, expected_revenue, currency,
                     aws_account_id, aws_account_name, aws_use_case,
+                    industry, opportunity_type,
                     sales_team, salesperson_name, salesperson_email,
                     create_date, date_open, date_closed, next_activity_date,
                     opportunity_ownership, aws_status, partner_acceptance_status,
@@ -433,6 +428,7 @@ class OpportunityTransformer:
                     %(partner_name)s, %(partner_email)s, %(partner_phone)s, %(partner_domain)s, %(company_name)s,
                     %(stage)s, %(probability)s, %(expected_revenue)s, %(currency)s,
                     %(aws_account_id)s, %(aws_account_name)s, %(aws_use_case)s,
+                    %(industry)s, %(opportunity_type)s,
                     %(sales_team)s, %(salesperson_name)s, %(salesperson_email)s,
                     %(create_date)s, %(date_open)s, %(date_closed)s, %(next_activity_date)s,
                     %(opportunity_ownership)s, %(aws_status)s, %(partner_acceptance_status)s,
@@ -455,6 +451,8 @@ class OpportunityTransformer:
                     aws_account_id = EXCLUDED.aws_account_id,
                     aws_account_name = EXCLUDED.aws_account_name,
                     aws_use_case = EXCLUDED.aws_use_case,
+                    industry = EXCLUDED.industry,
+                    opportunity_type = EXCLUDED.opportunity_type,
                     sales_team = EXCLUDED.sales_team,
                     salesperson_name = EXCLUDED.salesperson_name,
                     salesperson_email = EXCLUDED.salesperson_email,

@@ -70,17 +70,38 @@ This platform directly supports Cloud303's goal of automating POD opportunity id
 5. WHEN change detection is needed THEN SHA-256 hashes SHALL prevent unnecessary re-embedding of unchanged text
 6. WHEN dual embeddings are stored THEN each opportunity SHALL have exactly one identity and one context embedding
 
-### Requirement 3: Opportunity Matching Service
+### Requirement 3: Enhanced Opportunity Matching Service
 
-**User Story:** As a business analyst, I want automated matching between Odoo CRM opportunities and AWS ACE opportunities, so that I can identify potential POD candidates without manual comparison.
+**User Story:** As a business analyst, I want automated matching between Odoo CRM opportunities and AWS ACE opportunities using advanced multi-method RRF fusion, so that I can achieve 85-95% matching accuracy and minimize manual POD review.
 
 #### Acceptance Criteria
 
-1. WHEN matching is triggered THEN the system SHALL generate similarity scores using BGE embeddings and fuzzy text matching
-2. IF multiple matches are found THEN the system SHALL rank them by confidence score and present top candidates
-3. WHEN confidence scores are below threshold THEN matches SHALL be flagged for manual review
-4. IF no suitable matches are found THEN the system SHALL log the unmatchable opportunity for analysis
-5. WHEN matches are completed THEN results SHALL be stored with full audit trail and explanation of matching logic
+1. WHEN matching is triggered THEN the system SHALL implement a 4-method RRF (Reciprocal Rank Fusion) approach combining semantic similarity, company fuzzy matching, domain exact matching, and context similarity
+2. IF semantic similarity matching is performed THEN the system SHALL use BGE-M3 embeddings for both identity text (company + domain) and context text (opportunity descriptions)
+3. WHEN company fuzzy matching is applied THEN the system SHALL extract and normalize company names from identity text using fuzzy string matching algorithms
+4. IF domain exact matching is required THEN the system SHALL extract and compare domain names from identity text for precise company verification
+5. WHEN context similarity is evaluated THEN the system SHALL perform specialized matching on business context terms and project descriptions
+6. IF multiple matching methods produce results THEN the system SHALL combine scores using RRF algorithm with configurable k-values and method weightings
+7. WHEN RRF fusion is complete THEN the system SHALL achieve target matching accuracy of 85-95% compared to current 65-75% single-method approach
+8. IF confidence scores exceed high threshold THEN matches SHALL be automatically approved for POD processing
+9. WHEN confidence scores fall between medium and high thresholds THEN matches SHALL be flagged for expedited review with detailed method explanations
+10. IF confidence scores are below medium threshold THEN matches SHALL be flagged for comprehensive manual review
+11. WHEN no suitable matches are found THEN the system SHALL log unmatchable opportunities with detailed analysis of why each method failed
+12. IF matches are completed THEN results SHALL be stored with full audit trail including individual method scores, RRF fusion details, and final confidence ratings
+
+### Requirement 3a: RRF Algorithm Configuration and Tuning
+
+**User Story:** As a data scientist, I want configurable RRF algorithm parameters and method-specific tuning capabilities, so that I can optimize matching accuracy for different types of opportunities and business scenarios.
+
+#### Acceptance Criteria
+
+1. WHEN RRF algorithm is configured THEN it SHALL support configurable k-values for each of the 4 matching methods independently
+2. IF method weightings need adjustment THEN the system SHALL allow dynamic weighting of semantic similarity, company fuzzy matching, domain exact matching, and context similarity
+3. WHEN threshold optimization is performed THEN the system SHALL support method-specific confidence thresholds (high, medium, low) with independent tuning
+4. IF scoring calibration is required THEN the system SHALL provide score normalization across different matching methods to ensure fair fusion
+5. WHEN A/B testing is conducted THEN the system SHALL support parallel evaluation of RRF fusion versus single-method approaches with performance metrics
+6. IF configuration changes are made THEN the system SHALL allow hot-reloading of matching parameters without service restart
+7. WHEN performance analysis is needed THEN the system SHALL provide detailed metrics on individual method accuracy, RRF fusion effectiveness, and overall matching improvement
 
 ### Requirement 4: Billing Data Normalization Service **[DEFERRED]**
 
@@ -169,11 +190,14 @@ This platform directly supports Cloud303's goal of automating POD opportunity id
 
 ### Performance
 - BGE embedding generation SHALL complete within 500ms for batches of 32 records on RTX 3070 Ti
-- Opportunity matching SHALL complete within 2 seconds for single opportunity evaluation
+- Enhanced 4-method RRF opportunity matching SHALL complete within 3 seconds for single opportunity evaluation including all method computations
+- Individual matching methods SHALL complete within specified timeframes: semantic similarity (800ms), company fuzzy matching (200ms), domain exact matching (50ms), context similarity (400ms)
+- RRF fusion algorithm SHALL complete score combination and ranking within 100ms for up to 50 candidate opportunities
+- Method-specific threshold evaluation and confidence scoring SHALL complete within 50ms per opportunity
 - Rules engine evaluation SHALL complete within 50ms per opportunity
 - Billing data normalization SHALL process daily updates within 10 minutes
-- Frontend dashboard SHALL load initial data within 3 seconds
-- System SHALL support concurrent processing of multiple matching workflows
+- Frontend dashboard SHALL load initial data within 3 seconds including enhanced matching metrics
+- System SHALL support concurrent processing of multiple enhanced matching workflows with target throughput of 10 opportunities per minute
 
 ### Security
 - All API endpoints SHALL implement proper authentication and authorization
@@ -198,3 +222,7 @@ This platform directly supports Cloud303's goal of automating POD opportunity id
 - System monitoring SHALL provide clear alerts and status indicators including GPU utilization
 - Configuration SHALL include validation and helpful error messages for incorrect settings
 - Billing visualizations SHALL provide clear cost analysis and trend information
+- Enhanced matching interface SHALL display individual method scores, RRF fusion details, and confidence explanations for transparency
+- Matching accuracy metrics SHALL be tracked and displayed with target achievement indicators (current vs 85-95% target)
+- A/B testing framework SHALL provide clear comparison metrics between single-method and RRF fusion approaches
+- Method-specific tuning interfaces SHALL provide intuitive controls for adjusting thresholds, weights, and k-values with real-time impact preview

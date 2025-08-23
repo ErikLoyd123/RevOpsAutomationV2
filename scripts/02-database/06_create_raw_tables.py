@@ -281,6 +281,29 @@ def get_missing_apn_tables():
             create_ts timestamp with time zone NOT NULL,
             sync_ts timestamp with time zone,
             write_ts timestamp with time zone
+        );""",
+        
+        """CREATE TABLE IF NOT EXISTS raw.odoo_c_vertical (
+            _raw_id SERIAL PRIMARY KEY,
+            _ingested_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+            _source_system character varying(50) DEFAULT 'odoo'::character varying,
+            _sync_batch_id uuid,
+            id integer NOT NULL,
+            name character varying,
+            display_name character varying,
+            create_uid integer,
+            create_date timestamp without time zone,
+            write_uid integer,
+            write_date timestamp without time zone
+        );""",
+        
+        """CREATE TABLE IF NOT EXISTS raw.odoo_c_vertical_res_partner_rel (
+            _raw_id SERIAL PRIMARY KEY,
+            _ingested_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+            _source_system character varying(50) DEFAULT 'odoo'::character varying,
+            _sync_batch_id uuid,
+            res_partner_id integer NOT NULL,
+            c_vertical_id integer NOT NULL
         );"""
     ]
 
@@ -316,8 +339,8 @@ def create_raw_tables():
     print("=" * 80)
     print("RevOps RAW Schema Tables Creation Script")
     print("=" * 80)
-    print("\nThis script will create all 23 RAW tables with 1,321 fields:")
-    print("  • 17 Odoo tables (1,134 fields)")
+    print("\nThis script will create all 25 RAW tables with 1,335 fields:")
+    print("  • 19 Odoo tables (1,148 fields)")
     print("  • 6 APN tables (187 fields)")
     print("  • Metadata tracking fields on all tables")
     print()
@@ -421,8 +444,8 @@ def create_raw_tables():
             print(f"\n   📊 Total columns across all tables: {total_columns:,}")
             
             # Expected vs actual
-            expected_tables = 23
-            expected_columns = 1321  # Base fields + metadata fields
+            expected_tables = 25
+            expected_columns = 1335  # Base fields + metadata fields
             
             if len(tables) == expected_tables:
                 print(f"   ✅ Table count matches expected ({expected_tables})")

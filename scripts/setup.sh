@@ -67,7 +67,8 @@ for arg in "$@"; do
     case "$arg" in
         "--with-containers")
             CONTAINERS_TO_START="postgres redis"
-            echo -e "${BLUE}📦 Will start basic containers (PostgreSQL + Redis)...${NC}"
+            COMPOSE_PROFILES="--profile gpu"
+            echo -e "${BLUE}📦 Will start containers (PostgreSQL + Redis + BGE GPU)...${NC}"
             ;;
         "--with-gpu")
             CONTAINERS_TO_START="postgres redis"
@@ -90,14 +91,14 @@ for arg in "$@"; do
             echo ""
             echo "Options:"
             echo "  (none)              Database infrastructure only"
-            echo "  --with-containers   Start PostgreSQL + Redis containers"
+            echo "  --with-containers   Start PostgreSQL + Redis + BGE GPU containers"
             echo "  --with-gpu          Start containers + BGE GPU service"
             echo "  --full-stack        Start full development stack + monitoring"
             echo "  --with-data         Include data extraction and normalization"
             echo ""
             echo "Examples:"
             echo "  ./scripts/setup.sh                           # Infrastructure only"
-            echo "  ./scripts/setup.sh --with-containers         # Basic containers"
+            echo "  ./scripts/setup.sh --with-containers         # Containers + GPU"
             echo "  ./scripts/setup.sh --with-data               # Infrastructure + data"
             echo "  ./scripts/setup.sh --with-containers --with-data  # Complete setup"
             echo ""

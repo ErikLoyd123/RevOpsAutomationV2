@@ -592,7 +592,7 @@ class AWSAccountNormalizer:
             """
             
             # Insert in batches
-            batch_size = 1000
+            batch_size = 10000
             inserted_count = 0
             
             for i in range(0, len(normalized_accounts), batch_size):

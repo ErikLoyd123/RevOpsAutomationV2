@@ -100,7 +100,7 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - **Note:** Currently generates simulated embeddings. Requires tasks 2.5a-c for real BGE-M3 embeddings
   - _Prerequisites: 2.5c (for real embeddings) or Phase 1 (for simulated)_
 
-- [ ] 2.7 Generate Context Embeddings for Opportunities
+- [x] 2.7 Generate Context Embeddings for Opportunities
   - File: scripts/03-data/17_generate_context_embeddings.py (change 17_test_bge_service_basic.py to number 18 and ensure all scripts correctly reference it since the name change, make sure its compliant with SCRIPT_REGISTRY.md)
   - Extract descriptions, notes, and business context from opportunities
   - Create rich context embeddings using real BGE-M3 model
@@ -108,14 +108,28 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - Handle NULL/empty fields gracefully
   - _Prerequisites: 2.5c (BGE service running), 2.6_
 
-- [ ] 2.8 Create Embedding Quality Validation
+- [x] 2.8 Create Multi-Method Search Validation
   - File: scripts/03-data/19_validate_embeddings.py
   - Verify 100% embedding coverage for active opportunities
   - Check embedding dimensions (1024) and vector norms for BGE-M3
   - Validate real vs simulated embeddings (check for proper distribution)
   - Test sample similarity searches using pgvector operators
-  - Generate embedding quality report with statistics
+  - Add validation for company name fuzzy matching (extract from identity_text)
+  - Add validation for domain exact matching (extract from identity_text)
+  - Add validation for business context similarity (extract from context_text)
+  - Add A/B testing framework for RRF vs single-method comparison
+  - Generate comprehensive search validation report with multi-method statistics
   - _Prerequisites: 2.7_
+
+- [ ] 2.9 Enable BGE-M3 Advanced Modes (FUTURE - Phase 2)
+  - File: backend/services/07-embeddings/multi_mode_service.py
+  - Enable BGE-M3 sparse vector mode for additional precision
+  - Enable BGE-M3 multi-vector mode for enhanced semantic understanding
+  - Add advanced mode configuration and performance monitoring
+  - Integrate advanced modes with existing embedding pipeline
+  - Target: Additional 20-30% accuracy improvement over RRF fusion
+  - _Prerequisites: Phase 1 RRF implementation complete_
+  - _Priority: Phase 2 (after basic RRF fusion is working)_
 
 **Phase 2 Deliverable:** Complete embedding coverage for all opportunities with quality validation report.
 
@@ -125,25 +139,34 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
 
 **Goal:** Implement core matching logic for APN ↔ Odoo opportunity matching.
 
-- [ ] 4.1 Create Opportunity Matcher Engine
+- [x] 4.1 Create Enhanced Matching Engine with RRF Fusion
   - File: backend/services/08-matching/matcher.py
-  - Implement semantic similarity matching using BGE embeddings
-  - Add fuzzy text matching for company names
-  - Add domain-based matching as fallback
-  - Create confidence scoring (high/medium/low)
+  - **Method 1**: Semantic similarity matching using BGE embeddings from context_text
+  - **Method 2**: Company name fuzzy matching (extract from identity_text)
+  - **Method 3**: Domain exact matching (extract from identity_text)
+  - **Method 4**: Business context similarity (extract from context_text)
+  - Implement RRF (Reciprocal Rank Fusion) algorithm to combine all 4 methods
+  - Create enhanced confidence scoring with method-specific weights
+  - Add configurable RRF k-value and method weights
+  - Maintain backward compatibility with existing API endpoints
+  - Target: 85-95% matching accuracy (up from current 65-75%)
   - _Prerequisites: Phase 2 complete_
   - _Requirement: 3_
 
-- [ ] 4.2 Implement Match Candidate Generator
+- [x] 4.2 Implement Two-Stage Retrieval Architecture
   - File: backend/services/08-matching/candidate_generator.py
-  - Generate top-N match candidates from embeddings
-  - Apply pre-filtering (date ranges, status, region)
-  - Implement batch processing for efficiency
-  - Support both Odoo→APN and APN→Odoo matching
+  - **Stage 1**: Fast BGE similarity search to generate top-50 candidates
+  - **Stage 2**: Apply all 4 matching methods to refine candidates to top-N
+  - Apply pre-filtering (date ranges, status, region) before Stage 1
+  - Implement performance optimizations and result caching
+  - Add method-specific candidate scoring and ranking
+  - Support both Odoo→APN and APN→Odoo matching directions
+  - Implement batch processing for efficiency with chunked operations
+  - Add candidate quality metrics and performance monitoring
   - _Prerequisites: 4.1_
   - _Requirement: 3_
 
-- [ ] 4.3 Create Match Results Storage
+- [-] 4.3 Create Match Results Storage
   - File: backend/services/08-matching/match_store.py
   - Store matches in core.opportunity_matches table
   - Track confidence scores and matching methods used
@@ -193,6 +216,16 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - Generate recommendations for threshold tuning
   - _Prerequisites: 4.6_
 
+- [ ] 4.8 Cross-Encoder Reranking (FUTURE - Phase 3)
+  - File: backend/services/08-matching/cross_encoder_reranker.py
+  - Implement cross-encoder model for final precision reranking of top candidates
+  - Add two-stage matching pipeline (retrieval → reranking)
+  - Integrate advanced ML reranking models for highest precision
+  - Add reranking performance monitoring and threshold tuning
+  - Target: Additional 10-20% accuracy improvement for final precision
+  - _Prerequisites: Phase 2 BGE advanced modes complete_
+  - _Priority: Phase 3 (advanced feature for maximum precision)_
+
 **Phase 4 Deliverable:** REST API for matching with CLI testing tool and quality metrics report.
 
 ---
@@ -209,12 +242,16 @@ This tasks document has been restructured to focus exclusively on BGE M3 opportu
   - Generate tuning recommendations
   - _Prerequisites: Phase 4 complete_
 
-- [ ] 5.2 Tune Matching Thresholds
+- [ ] 5.2 Multi-Method Threshold Optimization
   - File: backend/services/08-matching/config.py
-  - Adjust similarity thresholds based on analysis
-  - Fine-tune confidence score boundaries
-  - Optimize pre-filtering criteria
-  - Add configurable matching rules
+  - **RRF Configuration**: Tune k-value for optimal fusion performance
+  - **Method-Specific Thresholds**: Optimize thresholds for each of 4 methods
+  - **Confidence Calibration**: Calibrate confidence scores across methods
+  - **Weight Optimization**: Tune method weights in RRF fusion algorithm
+  - Add A/B testing configuration for threshold comparison
+  - Implement dynamic threshold adjustment based on performance metrics
+  - Add configurable matching rules with method-specific parameters
+  - Create threshold performance monitoring and alerting
   - _Prerequisites: 5.1_
 
 - [ ] 5.3 Implement Enhanced Matching Logic
@@ -311,18 +348,19 @@ The following tasks from the original spec are deferred until after the matching
 
 ### Phase Completion Criteria
 - **Phase 1:** BGE service processes 32 embeddings in <500ms on GPU
-- **Phase 2:** 100% embedding coverage for 7,937 opportunities
-- **Phase 3:** Initial matching identifies >50% of known matches
-- **Phase 4:** API handles 10+ concurrent matching requests
-- **Phase 5:** Matching accuracy exceeds 85% on test set
+- **Phase 2:** 100% embedding coverage for 7,937 opportunities with multi-method validation
+- **Phase 3:** RRF fusion matching achieves 85-95% accuracy (up from 65-75%)
+- **Phase 4:** API handles 10+ concurrent matching requests with enhanced results
+- **Phase 5:** Multi-method threshold optimization maintains >90% accuracy
 - **Phase 6:** System processes daily batches without manual intervention
 
 ### Overall Success Indicators
-- Correctly match 85%+ of known APN ↔ Odoo opportunity pairs
-- Process new opportunities within 2 seconds
-- Maintain <1% false positive rate
-- Support 10+ concurrent users
-- Generate actionable matching insights for POD eligibility
+- **Primary Goal:** Achieve 85-95% matching accuracy using 4-method RRF fusion
+- **Performance:** Process new opportunities within 2 seconds using two-stage retrieval
+- **Precision:** Maintain <1% false positive rate across all matching methods
+- **Scalability:** Support 10+ concurrent users with cached candidate generation
+- **Business Impact:** Reduce manual review queue by 60-80% through confident automated matching
+- Generate actionable matching insights for POD eligibility with method-specific confidence scores
 
 ---
 
@@ -330,8 +368,10 @@ The following tasks from the original spec are deferred until after the matching
 
 1. **Incremental Delivery:** Each phase produces working software before proceeding
 2. **Validation Gates:** Results are evaluated after each phase before continuing
-3. **Focus on Core:** Matching engine is the primary deliverable, other features are secondary
-4. **Data-Driven Decisions:** Use actual matching results to guide optimization
-5. **Production Path:** Build with production deployment in mind from the start
+3. **RRF Fusion Focus:** 4-method matching (semantic, fuzzy, domain, context) is the primary enhancement
+4. **Backward Compatibility:** Keep existing API endpoints while enhancing internal algorithms
+5. **Data-Driven Decisions:** Use actual matching results to guide multi-method optimization
+6. **Phased Enhancement:** Phase 1 (RRF fusion) → Phase 2 (BGE advanced modes) → Phase 3 (cross-encoder reranking)
+7. **Production Path:** Build with production deployment in mind from the start
 
-This focused approach ensures we validate the BGE M3 matching concept early and build incrementally toward a production-ready system.
+This enhanced approach targets 85-95% matching accuracy through multi-method RRF fusion while maintaining infrastructure compatibility and building incrementally toward maximum precision.

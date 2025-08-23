@@ -79,7 +79,7 @@ def create_opportunities_table(cursor):
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         
         -- Basic opportunity information
-        name VARCHAR(500),
+        name VARCHAR(500),  -- Opportunity name: Odoo ol.name, APN ao.partner_project_title
         description TEXT,
         
         -- Partner/Company information (resolved names, not IDs)
@@ -99,6 +99,10 @@ def create_opportunities_table(cursor):
         aws_account_id VARCHAR(50),
         aws_account_name VARCHAR(255),
         aws_use_case VARCHAR(255),
+        
+        -- Business classification fields
+        industry VARCHAR(255),
+        opportunity_type VARCHAR(255),
         
         -- Team and assignment (resolved names)
         sales_team VARCHAR(100),
@@ -131,9 +135,12 @@ def create_opportunities_table(cursor):
     );
     
     -- Add indexes
+    CREATE INDEX idx_opportunities_name ON core.opportunities(name);
     CREATE INDEX idx_opportunities_partner_name ON core.opportunities(partner_name);
     CREATE INDEX idx_opportunities_aws_account ON core.opportunities(aws_account_id);
     CREATE INDEX idx_opportunities_stage ON core.opportunities(stage);
+    CREATE INDEX idx_opportunities_industry ON core.opportunities(industry);
+    CREATE INDEX idx_opportunities_opportunity_type ON core.opportunities(opportunity_type);
     CREATE INDEX idx_opportunities_source ON core.opportunities(source_system, source_id);
     CREATE INDEX idx_opportunities_pod_ownership ON core.opportunities(opportunity_ownership);
     CREATE INDEX idx_opportunities_identity_hash ON core.opportunities(identity_hash);

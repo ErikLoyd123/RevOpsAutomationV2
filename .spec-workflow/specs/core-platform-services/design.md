@@ -122,14 +122,34 @@ graph TD
 - **Reuses:** Database connection manager, configuration module
 
 ### Opportunity Matching Service
-- **Purpose:** Match Odoo opportunities with ACE opportunities using semantic similarity
+- **Purpose:** Match Odoo opportunities with APN opportunities using advanced RRF (Reciprocal Rank Fusion) multi-method approach for 85-95% accuracy
+- **Architecture:** Enhances existing placeholder service at port 8008 with 4-method fusion pipeline
+- **Matching Methods:**
+  1. **Semantic Similarity** - BGE-M3 embeddings for project description matching
+  2. **Company Fuzzy Matching** - FuzzyWuzzy on company names extracted from identity_text
+  3. **Domain Exact Matching** - Direct domain comparison from identity_text
+  4. **Context Similarity** - BGE embeddings on business context from context_text
+- **RRF Fusion Algorithm:**
+  - Each method generates ranked candidate list with confidence scores
+  - RRF combines rankings: `score = Σ(1/(k + rank_i))` where k=60 (tunable)
+  - Final candidates ranked by combined RRF score for maximum accuracy
+- **Performance Targets:** 
+  - Two-stage retrieval: Fast BGE search (top 50) → Multi-method refinement
+  - Target accuracy: 85-95% vs current 65-75% single-method approach
+  - Response time: <2 seconds for candidate generation and scoring
 - **Interfaces:**
-  - `POST /api/v1/matching/opportunities/match` - Trigger opportunity matching
-  - `GET /api/v1/matching/opportunities/{id}/candidates` - Get match candidates
-  - `PUT /api/v1/matching/opportunities/{id}/confirm` - Confirm match selection
-- **Dependencies:** BGE Embeddings Service, CORE schema, OPS schema
+  - `POST /api/v1/matching/opportunities/match` - Trigger RRF multi-method matching
+  - `GET /api/v1/matching/opportunities/{id}/candidates` - Get RRF-ranked match candidates with method breakdown
+  - `PUT /api/v1/matching/opportunities/{id}/confirm` - Confirm match selection with method attribution
+  - `GET /api/v1/matching/health` - Service health with method-specific performance metrics
+- **Dependencies:** BGE Embeddings Service, CORE schema (identity_text, context_text), OPS schema
 - **Location:** `/backend/services/08-matching/`
-- **Reuses:** Database connection manager, existing CORE opportunity tables
+- **Key Components:**
+  - `matcher.py` - Main RRF fusion engine with 4-method implementation
+  - `candidate_generator.py` - Two-stage retrieval pipeline (BGE → multi-method)
+  - `config.py` - Method-specific thresholds and RRF k-value tuning
+  - `utils/` - Company name extraction, domain parsing, similarity utilities
+- **Reuses:** Database connection manager, existing CORE opportunity tables, BGE embeddings service
 
 ### POD Rules Engine **[PHASE 2 - DEFERRED]**
 > **STATUS: DEFERRED** - POD rules engine implementation is deferred until opportunity matching provides the foundation data needed for effective rule evaluation.
@@ -262,16 +282,43 @@ CREATE TABLE core.opportunity_matches (
     match_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     odoo_opportunity_id UUID NOT NULL,
     ace_opportunity_id UUID,
-    similarity_score DECIMAL(5,4) NOT NULL,
-    match_confidence VARCHAR(50) NOT NULL, -- 'high', 'medium', 'low'
-    match_method VARCHAR(100) NOT NULL, -- 'semantic', 'domain', 'fuzzy_name'
-    match_explanation TEXT,
+    
+    -- RRF Fusion Scoring
+    rrf_combined_score DECIMAL(8,6) NOT NULL, -- Combined RRF score across all methods
+    similarity_score DECIMAL(5,4) NOT NULL,   -- Legacy compatibility field
+    match_confidence VARCHAR(50) NOT NULL,    -- 'high', 'medium', 'low' based on RRF score
+    
+    -- Method-Specific Scores
+    semantic_score DECIMAL(5,4),           -- BGE semantic similarity score
+    company_fuzzy_score DECIMAL(5,4),      -- FuzzyWuzzy company name matching score
+    domain_exact_match BOOLEAN,            -- Boolean: exact domain match found
+    context_similarity_score DECIMAL(5,4), -- BGE context similarity score
+    
+    -- Method Rankings (for RRF calculation)
+    semantic_rank INTEGER,                 -- Rank in semantic similarity results
+    company_fuzzy_rank INTEGER,            -- Rank in company fuzzy matching results
+    domain_exact_rank INTEGER,             -- Rank in domain matching results (1 if exact, NULL if no match)
+    context_similarity_rank INTEGER,       -- Rank in context similarity results
+    
+    -- Match Attribution
+    primary_match_method VARCHAR(100) NOT NULL, -- 'rrf_fusion', 'semantic', 'domain', 'fuzzy_name', 'context'
+    contributing_methods TEXT[],           -- Array of methods that contributed to the match
+    match_explanation TEXT,               -- Human-readable explanation of match reasoning
+    
+    -- Workflow Status
     status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'confirmed', 'rejected'
     reviewed_by VARCHAR(255),
     reviewed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (odoo_opportunity_id) REFERENCES core.odoo_opportunities(opportunity_id),
-    FOREIGN KEY (ace_opportunity_id) REFERENCES core.ace_opportunities(opportunity_id)
+    
+    -- Performance Indexes
+    INDEX ON rrf_combined_score,
+    INDEX ON match_confidence,
+    INDEX ON primary_match_method,
+    INDEX ON status,
+    
+    FOREIGN KEY (odoo_opportunity_id) REFERENCES core.opportunities(opportunity_id),
+    FOREIGN KEY (ace_opportunity_id) REFERENCES core.opportunities(opportunity_id)
 );
 
 -- POD Rules Evaluation Results (extends OPS schema)
@@ -310,6 +357,29 @@ class BGEConfig(BaseModel):
     max_sequence_length: int = 8192
     similarity_threshold: float = 0.7
 
+# RRF Fusion Matching Configuration
+class MatchingConfig(BaseModel):
+    # RRF Parameters
+    rrf_k_value: int = 60                    # RRF k parameter for rank fusion
+    top_candidates_stage1: int = 50          # Candidates from fast BGE search
+    top_candidates_final: int = 10           # Final candidates after RRF fusion
+    
+    # Method-Specific Thresholds
+    semantic_similarity_threshold: float = 0.65      # BGE semantic similarity
+    company_fuzzy_threshold: float = 0.80            # FuzzyWuzzy company matching
+    context_similarity_threshold: float = 0.70       # BGE context similarity
+    
+    # Confidence Calibration
+    confidence_high_threshold: float = 0.85          # Auto-approve threshold
+    confidence_medium_threshold: float = 0.70        # Manual review threshold
+    confidence_low_threshold: float = 0.50           # Rejection threshold
+    
+    # Method Weights (for score normalization)
+    semantic_weight: float = 0.35
+    company_fuzzy_weight: float = 0.25
+    domain_exact_weight: float = 0.25
+    context_similarity_weight: float = 0.15
+
 # POD Rules Configuration
 class PODRulesConfig(BaseModel):
     spend_threshold_monthly: Decimal = Decimal("5000.00")
@@ -334,16 +404,22 @@ class PODRulesConfig(BaseModel):
    - **Recovery:** Queue embedding requests for processing when service recovers
 
 3. **Opportunity Matching Low Confidence**
-   - **Handling:** Flag for manual review instead of auto-processing
-   - **User Impact:** Manual review required for ambiguous matches
-   - **Workflow:** Send to review queue with detailed similarity analysis
+   - **Handling:** Flag for manual review with method-specific breakdown
+   - **User Impact:** Manual review required for ambiguous matches with RRF score analysis
+   - **Workflow:** Send to review queue with detailed multi-method similarity analysis and contributing method attribution
 
 4. **POD Rules Evaluation Failure**
    - **Handling:** Mark opportunity as requiring manual review
    - **User Impact:** Compliance team reviews manually
    - **Audit:** Full rule evaluation log stored for troubleshooting
 
-5. **Billing Data Inconsistency**
+5. **RRF Fusion Method Failure**
+   - **Handling:** Fall back to single best-performing method (semantic similarity)
+   - **User Impact:** Slightly reduced matching accuracy but continued operation
+   - **Recovery:** Log method failures and retry with reduced method set
+   - **Monitoring:** Alert on method-specific failure rates and performance degradation
+
+6. **Billing Data Inconsistency**
    - **Handling:** Flag billing anomalies and continue with available data
    - **User Impact:** Spend validation may be incomplete
    - **Resolution:** Billing team investigates data quality issues
@@ -361,7 +437,9 @@ class PODRulesConfig(BaseModel):
 - **Service Communication:** Test API calls between microservices
 - **Database Integration:** Test CRUD operations and complex queries
 - **GPU Pipeline:** Test end-to-end BGE embedding workflow
-- **Matching Workflow:** Test complete opportunity matching pipeline
+- **RRF Matching Pipeline:** Test complete 4-method opportunity matching workflow
+- **Multi-Method Validation:** Test RRF fusion algorithm with various candidate combinations
+- **Method Fallback:** Test degraded matching when individual methods fail
 - **Rules Evaluation:** Test POD rules against real opportunity data
 
 ### End-to-End Testing
@@ -373,7 +451,10 @@ class PODRulesConfig(BaseModel):
 
 ### Performance Testing
 - **BGE Throughput:** Target 32 embeddings per 500ms batch on RTX 3070 Ti
+- **RRF Matching Performance:** Complete 4-method matching under 2 seconds for 50 candidates
+- **Method-Specific Performance:** Individual method timings (semantic: <500ms, fuzzy: <200ms, domain: <50ms, context: <500ms)
 - **API Response Times:** All endpoints under 2 seconds for normal operations
-- **Database Query Performance:** Complex matching queries under 100ms
+- **Database Query Performance:** Complex matching queries under 100ms with method-specific indexes
 - **Frontend Load Times:** Initial dashboard load under 3 seconds
 - **Concurrent Users:** Support 10+ concurrent users without performance degradation
+- **Accuracy Benchmarking:** A/B testing RRF fusion vs single-method approach on validation dataset

@@ -282,7 +282,7 @@ class APNConnector:
         "opportunity": APNTableInfo(
             table_name="opportunity",
             primary_key="id",
-            batch_size=500,  # Smaller batches for large records
+            batch_size=5000,  # Increased batch size for better performance
             order_by="aws_last_modified_date",
             description="ACE partner opportunities with AWS integration",
             field_count=66
@@ -290,7 +290,7 @@ class APNConnector:
         "funding_request": APNTableInfo(
             table_name="funding_request",
             primary_key="id",
-            batch_size=1000,
+            batch_size=10000,
             order_by="id",  # No created_date field found
             description="AWS funding requests for partner opportunities",
             field_count=57
@@ -298,7 +298,7 @@ class APNConnector:
         "cash_claim": APNTableInfo(
             table_name="cash_claim",
             primary_key="id",
-            batch_size=2000,
+            batch_size=10000,
             order_by="planned_start_date",
             description="Cash claims for funding requests",
             field_count=26
@@ -306,7 +306,7 @@ class APNConnector:
         "funding_request_history": APNTableInfo(
             table_name="funding_request_history",
             primary_key="id",
-            batch_size=5000,
+            batch_size=10000,
             order_by="date",  # Uses 'date' not 'created_date'
             description="Audit trail for funding request changes",
             field_count=14
@@ -314,7 +314,7 @@ class APNConnector:
         "end_user": APNTableInfo(
             table_name="end_user",
             primary_key="id",
-            batch_size=2000,
+            batch_size=10000,
             order_by="id",
             description="End customer information",
             field_count=18
@@ -322,7 +322,7 @@ class APNConnector:
         "users": APNTableInfo(
             table_name="users",
             primary_key="id",
-            batch_size=5000,
+            batch_size=10000,
             order_by="create_ts",  # Uses create_ts timestamp
             description="APN user accounts",
             field_count=6

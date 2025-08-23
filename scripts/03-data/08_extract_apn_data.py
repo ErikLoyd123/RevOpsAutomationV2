@@ -83,32 +83,32 @@ class APNDataLoader:
             'opportunity': {
                 'fields': 66,
                 'description': 'Partner opportunities with AWS integration',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'funding_request': {
                 'fields': 57,
                 'description': 'AWS funding requests',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'funding_request_history': {
                 'fields': 14,
                 'description': 'Audit trail for funding request changes',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'cash_claim': {
                 'fields': 26,
                 'description': 'Cash claims for funding requests',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'users': {
                 'fields': 6,
                 'description': 'APN user accounts',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'end_user': {
                 'fields': 18,
                 'description': 'End customer information',
-                'batch_size': 1000
+                'batch_size': 10000
             }
         }
     

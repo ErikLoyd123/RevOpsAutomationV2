@@ -13,7 +13,7 @@ Key Features:
 - Tracks sync jobs in ops.sync_jobs table
 - Comprehensive error handling and validation
 
-Odoo Tables Extracted (18 tables, 1,159 fields total):
+Odoo Tables Extracted (20 tables, 1,168 fields total):
 - crm_lead (153 fields) - CRM opportunities/leads
 - res_partner (157 fields) - Partners/companies/contacts
 - res_users (8 fields) - System users for salesperson resolution
@@ -32,6 +32,8 @@ Odoo Tables Extracted (18 tables, 1,159 fields total):
 - product_template (107 fields) - Product catalog
 - project_project (148 fields) - Projects
 - res_country_state (8 fields) - Geographic states/provinces
+- c_vertical (7 fields) - Industry vertical classifications
+- c_vertical_res_partner_rel (2 fields) - Partner to vertical mapping
 
 Usage:
     # Full extraction to database
@@ -94,98 +96,109 @@ class OdooDataLoader:
             'crm_lead': {
                 'fields': 153,
                 'description': 'CRM opportunities and leads',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'res_partner': {
                 'fields': 157,
                 'description': 'Partners (companies and contacts)',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'res_users': {
                 'fields': 8,
                 'description': 'System users for salesperson resolution',
-                'batch_size': 1000,
+                'batch_size': 10000,
                 'field_list': ['id', 'active', 'login', 'partner_id', 'company_id', 'create_date', 'notification_type', 'sale_team_id']
             },
             'c_aws_accounts': {
                 'fields': 78,
                 'description': 'AWS account records',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'c_billing_internal_cur': {
                 'fields': 14,
                 'description': 'AWS actual costs/billing data',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'c_billing_bill': {
                 'fields': 16,
                 'description': 'Invoice staging records',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'c_billing_bill_line': {
                 'fields': 13,
                 'description': 'Invoice line items',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'account_move': {
                 'fields': 75,
                 'description': 'Financial transactions and invoices',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'account_move_line': {
                 'fields': 59,
                 'description': 'Invoice and transaction line items',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'crm_team': {
                 'fields': 29,
                 'description': 'CRM sales teams',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'crm_stage': {
                 'fields': 12,
                 'description': 'CRM pipeline stages',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'sale_order': {
                 'fields': 101,
                 'description': 'Sales orders',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'sale_order_line': {
                 'fields': 51,
                 'description': 'Sales order line items',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'c_aws_funding_request': {
                 'fields': 71,
                 'description': 'AWS funding requests',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'c_billing_spp_bill': {
                 'fields': 16,
                 'description': 'SPP billing records',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'c_billing_ingram_bill': {
                 'fields': 27,
                 'description': 'Ingram distributor billing records',
-                'batch_size': 1000
+                'batch_size': 10000
             },
             'product_template': {
                 'fields': 107,
                 'description': 'Product catalog templates',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'project_project': {
                 'fields': 148,
                 'description': 'Project records',
-                'batch_size': 500
+                'batch_size': 5000
             },
             'res_country_state': {
                 'fields': 8,
                 'description': 'Geographic states and provinces',
-                'batch_size': 1000
+                'batch_size': 10000
+            },
+            'c_vertical': {
+                'fields': 7,
+                'description': 'Industry vertical classifications',
+                'batch_size': 10000
+            },
+            'c_vertical_res_partner_rel': {
+                'fields': 2,
+                'description': 'Partner to vertical industry mapping (Many2Many)',
+                'batch_size': 10000,
+                'field_list': ['res_partner_id', 'c_vertical_id']
             }
         }
     
