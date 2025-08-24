@@ -521,31 +521,53 @@ services:
       - "com.revops.environment=${ENVIRONMENT:-development}"
 
   # ---------------------------------------------------------------------------
-  # API Gateway Service (Placeholder)
+  # API Gateway Service - Production Ready
   # ---------------------------------------------------------------------------
   api-gateway:
-    image: python:3.10-slim
+    build:
+      context: ./backend/services/06-api
+      dockerfile: Dockerfile
     container_name: revops-api-gateway
     restart: unless-stopped
     profiles:
       - full
       - prod
     environment:
-      DATABASE_URL: postgresql://${LOCAL_DB_USER:-revops_user}:${LOCAL_DB_PASSWORD:-RevOps2024Secure!}@postgres:5432/${LOCAL_DB_NAME:-revops_core}
-      REDIS_URL: redis://redis:6379/4
+      # Database Configuration
+      LOCAL_DB_HOST: postgres
+      LOCAL_DB_PORT: 5432
+      LOCAL_DB_NAME: ${LOCAL_DB_NAME:-revops_core}
+      LOCAL_DB_USER: ${LOCAL_DB_USER:-revops_user}
+      LOCAL_DB_PASSWORD: ${LOCAL_DB_PASSWORD:-RevOps2024Secure!}
       
-      # Service Discovery URLs
-      BGE_SERVICE_URL: http://bge-service:8007
-      BILLING_SERVICE_URL: http://billing-service:8010
-      MATCHING_SERVICE_URL: http://matching-service:8008
-      RULES_SERVICE_URL: http://rules-service:8009
+      # Authentication & Security
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_EXPIRY_HOURS: ${JWT_EXPIRY_HOURS:-24}
       
-      SERVICE_PORT: 8000
-      SERVICE_NAME: api-gateway
+      # Service Discovery URLs  
+      MATCHING_SERVICE_URL: http://revops-matching-service:8008
+      BGE_SERVICE_URL: http://revops-bge-service:8007
+      INGESTION_SERVICE_URL: http://revops-ingestion-service:8001
+      TRANSFORMATION_SERVICE_URL: http://revops-transformation-service:8002
+      RULES_SERVICE_URL: http://revops-rules-service:8009
+      
+      # CORS and API Configuration
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080}
+      
+      # Rate Limiting
+      ENABLE_RATE_LIMITING: ${ENABLE_RATE_LIMITING:-true}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-100}
+      RATE_LIMIT_WINDOW_MINUTES: ${RATE_LIMIT_WINDOW_MINUTES:-1}
+      
+      # Service Configuration
+      HOST: 0.0.0.0
+      PORT: 8000
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-false}
     volumes:
-      - ./backend/services/11-api-gateway:/app/src
+      - ./backend/core:/app/backend/core:ro
       - app_logs:/app/logs
     ports:
       - "${API_GATEWAY_PORT:-8000}:8000"
@@ -557,9 +579,15 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["python", "-c", "import time; time.sleep(999999)"]  # Placeholder
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     labels:
       - "com.revops.service=api-gateway"
+      - "com.revops.tier=production"
       - "com.revops.environment=${ENVIRONMENT:-development}"
 
 # =============================================================================

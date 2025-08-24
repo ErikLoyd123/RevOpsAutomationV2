@@ -54,6 +54,7 @@ class MatchResult:
     company_fuzzy_rank: Optional[int] = None
     domain_exact_rank: Optional[int] = None
     context_similarity_rank: Optional[int] = None
+    cross_encoder_score: Optional[float] = None
     primary_match_method: str = 'rrf_fusion'
     contributing_methods: Optional[List[str]] = None
     match_explanation: Optional[str] = None
@@ -117,14 +118,14 @@ class MatchStore:
                     match_id, apn_opportunity_id, odoo_opportunity_id,
                     rrf_combined_score, similarity_score, match_confidence, match_rank,
                     semantic_score, company_fuzzy_score, domain_exact_match, 
-                    context_similarity_score, semantic_rank, company_fuzzy_rank,
+                    context_similarity_score, cross_encoder_score, semantic_rank, company_fuzzy_rank,
                     domain_exact_rank, context_similarity_rank, primary_match_method,
                     contributing_methods, match_explanation, processing_time_ms, batch_id,
                     apn_company_name, apn_opportunity_name, apn_stage, apn_salesperson,
                     odoo_company_name, odoo_opportunity_name, odoo_stage, odoo_salesperson
                 ) VALUES (
                     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-                    $21, $22, $23, $24, $25, $26, $27, $28
+                    $21, $22, $23, $24, $25, $26, $27, $28, $29
                 )
             """,
                 match_id,
@@ -133,11 +134,12 @@ class MatchStore:
                 match_result.rrf_combined_score,
                 match_result.similarity_score,
                 match_result.match_confidence,
-                0,  # match_rank - 0 for no matches case
+                getattr(match_result, 'match_rank', 0),  # match_rank from candidate
                 match_result.semantic_score,
                 match_result.company_fuzzy_score,
                 match_result.domain_exact_match,
                 match_result.context_similarity_score,
+                getattr(match_result, 'cross_encoder_score', 0.0),
                 match_result.semantic_rank,
                 match_result.company_fuzzy_rank,
                 match_result.domain_exact_rank,
@@ -190,14 +192,14 @@ class MatchStore:
                             match_id, apn_opportunity_id, odoo_opportunity_id,
                             rrf_combined_score, similarity_score, match_confidence, match_rank,
                             semantic_score, company_fuzzy_score, domain_exact_match, 
-                            context_similarity_score, semantic_rank, company_fuzzy_rank,
+                            context_similarity_score, cross_encoder_score, semantic_rank, company_fuzzy_rank,
                             domain_exact_rank, context_similarity_rank, primary_match_method,
                             contributing_methods, match_explanation, processing_time_ms, batch_id,
                             apn_company_name, apn_opportunity_name, apn_stage, apn_salesperson,
                             odoo_company_name, odoo_opportunity_name, odoo_stage, odoo_salesperson
                         ) VALUES (
                             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-                            $21, $22, $23, $24, $25, $26, $27, $28
+                            $21, $22, $23, $24, $25, $26, $27, $28, $29
                         )
                     """,
                         match_id,
@@ -211,6 +213,7 @@ class MatchStore:
                         match_result.company_fuzzy_score,
                         match_result.domain_exact_match,
                         match_result.context_similarity_score,
+                        getattr(match_result, 'cross_encoder_score', 0.0),
                         match_result.semantic_rank,
                         match_result.company_fuzzy_rank,
                         match_result.domain_exact_rank,
@@ -576,6 +579,7 @@ async def store_apn_candidate_matches(apn_opportunity_id: str, candidates: List[
             company_fuzzy_rank=0, 
             domain_exact_rank=0,
             context_similarity_rank=0,
+            cross_encoder_score=0.0,
             primary_match_method="no_matches_found",
             contributing_methods=[],
             match_explanation="No matches found for this APN opportunity",
@@ -605,15 +609,15 @@ async def store_apn_candidate_matches(apn_opportunity_id: str, candidates: List[
             # Extract scores safely  
             rrf_score = safe_get_static(candidate, 'rrf_combined_score', 0.0)
             semantic_score = safe_get_static(candidate, 'semantic_score', 0.0)
-            company_fuzzy_score = safe_get_static(candidate, 'fuzzy_score', 0.0)
-            domain_exact_match = safe_get_static(candidate, 'domain_score', 0.0) > 0.5  # Convert to boolean
-            context_similarity_score = safe_get_static(candidate, 'context_score', 0.0)
+            company_fuzzy_score = safe_get_static(candidate, 'company_fuzzy_score', 0.0)
+            domain_exact_match = safe_get_static(candidate, 'domain_exact_match', False)
+            context_similarity_score = safe_get_static(candidate, 'context_similarity_score', 0.0)
             
             # Get method ranks safely
             semantic_rank = safe_get_static(candidate, 'semantic_rank', 0)
-            company_fuzzy_rank = safe_get_static(candidate, 'fuzzy_rank', 0)
-            domain_exact_rank = safe_get_static(candidate, 'domain_rank', 0) if domain_exact_match else None
-            context_similarity_rank = safe_get_static(candidate, 'context_rank', 0)
+            company_fuzzy_rank = safe_get_static(candidate, 'company_fuzzy_rank', 0)
+            domain_exact_rank = safe_get_static(candidate, 'domain_exact_rank', 0) if domain_exact_match else None
+            context_similarity_rank = safe_get_static(candidate, 'context_similarity_rank', 0)
             
             # Determine confidence based on RRF score (use correct field names)
             if rrf_score >= 0.8:
@@ -632,21 +636,24 @@ async def store_apn_candidate_matches(apn_opportunity_id: str, candidates: List[
             }
             primary_method = max(method_scores.items(), key=lambda x: x[1])[0]
             
-            # Create contributing methods list
-            contributing_methods = []
-            if semantic_score > 0.1: contributing_methods.append('semantic_similarity')
-            if company_fuzzy_score > 0.1: contributing_methods.append('company_fuzzy_match') 
-            if domain_exact_match: contributing_methods.append('domain_exact_match')
-            if context_similarity_score > 0.1: contributing_methods.append('context_similarity')
+            # Get contributing methods from candidate (CSV+ provides this)
+            contributing_methods = safe_get_static(candidate, 'contributing_methods', [])
+            if not contributing_methods:  # Fallback logic if not provided
+                contributing_methods = []
+                if semantic_score > 0.1: contributing_methods.append('semantic_similarity')
+                if company_fuzzy_score > 0.1: contributing_methods.append('company_fuzzy_match') 
+                if domain_exact_match: contributing_methods.append('domain_exact_match')
+                if context_similarity_score > 0.1: contributing_methods.append('context_similarity')
             
-            # Generate explanation
-            explanation_parts = []
-            if semantic_score > 0: explanation_parts.append(f"Semantic: {semantic_score:.3f}")
-            if company_fuzzy_score > 0: explanation_parts.append(f"Company: {company_fuzzy_score:.3f}")  
-            if domain_exact_match: explanation_parts.append("Domain: exact")
-            if context_similarity_score > 0: explanation_parts.append(f"Context: {context_similarity_score:.3f}")
-            
-            match_explanation = f"RRF Score: {rrf_score:.3f} | " + " | ".join(explanation_parts)
+            # Get explanation from candidate or generate fallback
+            match_explanation = safe_get_static(candidate, 'match_explanation', '')
+            if not match_explanation:  # Fallback logic if not provided
+                explanation_parts = []
+                if semantic_score > 0: explanation_parts.append(f"Semantic: {semantic_score:.3f}")
+                if company_fuzzy_score > 0: explanation_parts.append(f"Company: {company_fuzzy_score:.3f}")  
+                if domain_exact_match: explanation_parts.append("Domain: exact")
+                if context_similarity_score > 0: explanation_parts.append(f"Context: {context_similarity_score:.3f}")
+                match_explanation = f"RRF Score: {rrf_score:.3f} | " + " | ".join(explanation_parts)
             
             # Create match result with swapped fields (APN primary, Odoo secondary)
             match_result = MatchResult(
@@ -663,6 +670,7 @@ async def store_apn_candidate_matches(apn_opportunity_id: str, candidates: List[
                 company_fuzzy_rank=company_fuzzy_rank,
                 domain_exact_rank=domain_exact_rank,
                 context_similarity_rank=context_similarity_rank,
+                cross_encoder_score=safe_get_static(candidate, 'cross_encoder_score', 0.0),
                 primary_match_method="rrf_fusion",
                 contributing_methods=contributing_methods,
                 match_explanation=match_explanation,

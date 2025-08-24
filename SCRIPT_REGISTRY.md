@@ -186,7 +186,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `17_generate_context_embeddings.py` - Context Embeddings Generation Script - generates BGE-M3 context embeddings from rich business context (opportunity details, next activity, deal info) for semantic matching (✅ Task 2.7 completed)
 - `18_test_bge_service.py` - BGE Service Integration Test - comprehensive test suite with GPU acceleration validation and performance benchmarking (✅ renumbered)
 - `19_generate_all_embeddings.sh` - Complete Embedding Generation Pipeline - orchestrates both identity and context embedding generation with setup.sh-style colored output, real-time progress tracking, and comprehensive error handling for overnight processing (✅ Tasks 2.6 + 2.7 unified)
-- `20_initial_opportunity_matching.py` - Production Opportunity Matching Engine - implements 4-method RRF fusion (semantic, company fuzzy, domain exact, business context) for automated Odoo↔APN opportunity matching with normalized 0-1 RRF scoring, confidence classification, and batch processing (✅ Task 4.4 completed)
+- `20_initial_opportunity_matching.py` - CSV+ Hybrid Opportunity Matching Engine - implements proven CSV+ algorithm (40% context + 30% identity + 30% enhanced fuzzy) with optional cross-encoder reranking for automated APN→Odoo opportunity matching. Features vectorized similarity calculations, domain-aware company matching, and 5 matches per APN opportunity with confidence scoring. Results stored in data/reports/matching/ (✅ Task 4.4 enhanced with cross-encoder)
 - `21_test_opportunity_matching.py` - Interactive CLI Matching Test Tool - command-line interface for testing and validating opportunity matching with real-time RRF score analysis, method breakdown, and confidence validation (✅ Task 4.6 completed)
 - `22_matching_quality_report.py` - Matching Quality Analysis Report - generates comprehensive quality metrics, confidence distribution analysis, method effectiveness evaluation, and threshold tuning recommendations for RRF matching system (✅ Task 4.7 pending)
 
@@ -297,7 +297,7 @@ echo "Loading schema from: ${ACTUAL_ODOO_SCHEMAS}"
 - `app.py` - FastAPI service wrapper for enhanced opportunity matching with RRF fusion endpoints (✅ Task 4.5 completed)
 - `matcher.py` - Core RRF fusion matching engine implementing 4-method approach (semantic, company fuzzy, domain exact, business context) with normalized 0-1 scoring (✅ Task 4.3 enhanced)
 - `candidate_generator.py` - Two-stage retrieval system: fast BGE similarity search → multi-method RRF refinement with Redis caching (✅ Task 4.3 completed)
-- `match_store.py` - Database storage engine for opportunity matches with denormalized fields, confidence scoring, and audit trails (✅ Task 4.4 enhanced)
+- `match_store.py` - Database storage engine for opportunity matches with APN-first field ordering, cross-encoder score support, and 5 matches per APN opportunity. Includes progress tracking and structured match result storage in ops.opportunity_matches (✅ Task 4.4 enhanced with cross-encoder)
 - `config.py` - Configuration management for RRF fusion parameters, confidence thresholds, and method-specific tuning (✅ Task 4.3 completed)
 - `integration_test.py` - Integration test suite for end-to-end matching pipeline validation (✅ Task 4.6 component)
 - `requirements.txt` - Python dependencies for enhanced matching service

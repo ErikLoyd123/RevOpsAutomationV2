@@ -434,6 +434,7 @@ def create_opportunity_matches_table(cursor):
         company_fuzzy_rank INTEGER,            -- Rank in company fuzzy matching results
         domain_exact_rank INTEGER,             -- Rank in domain matching results (1 if exact, NULL if no match)
         context_similarity_rank INTEGER,       -- Rank in context similarity results
+        cross_encoder_score DECIMAL(5,4),      -- Cross-encoder reranking score
         
         -- Match Attribution
         primary_match_method VARCHAR(100) NOT NULL, -- 'semantic_company_weighted', 'rrf_fusion', etc.

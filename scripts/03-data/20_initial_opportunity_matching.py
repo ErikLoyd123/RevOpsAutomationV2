@@ -27,6 +27,7 @@ import sys
 import json
 import uuid
 import numpy as np
+import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
@@ -100,7 +101,14 @@ def enhanced_fuzzy_matching(company1: str, company2: str) -> float:
 class CSVPlusMatchingEngine:
     """CSV+ Hybrid matching engine with proven algorithm and enhancements"""
     
-    def __init__(self):
+    def __init__(self, use_cross_encoder=False):
+        self.use_cross_encoder = use_cross_encoder
+        self.cross_encoder = None
+        
+        # Initialize cross-encoder if requested
+        if use_cross_encoder:
+            self.cross_encoder = self._load_cross_encoder()
+        
         self.connection_string = (
             f"postgresql://{os.getenv('LOCAL_DB_USER')}:"
             f"{os.getenv('LOCAL_DB_PASSWORD')}@"
@@ -127,6 +135,55 @@ class CSVPlusMatchingEngine:
             'batch_id': self.batch_id,
             'started_at': datetime.utcnow().isoformat()
         }
+    
+    def _load_cross_encoder(self):
+        """Load cross-encoder model for reranking"""
+        try:
+            from sentence_transformers import CrossEncoder
+            print("   🤖 Loading cross-encoder model for enhanced matching...")
+            model = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2')
+            print("   ✅ Cross-encoder loaded successfully")
+            return model
+        except ImportError:
+            print("   ❌ sentence-transformers not installed. Install with: pip install sentence-transformers")
+            return None
+        except Exception as e:
+            print(f"   ⚠️  Failed to load cross-encoder: {e}")
+            return None
+    
+    def _cross_encoder_rerank(self, apn_opp: Dict, odoo_data: List[Dict], top_indices: np.ndarray, csv_scores: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Rerank top candidates using cross-encoder"""
+        if not self.cross_encoder:
+            return top_indices, np.zeros(len(top_indices))
+        
+        # Prepare text pairs for cross-encoder
+        apn_text = f"{apn_opp['opportunity_name']} {apn_opp['company_name']}"
+        
+        pairs = []
+        for idx in top_indices:
+            odoo = odoo_data[idx]
+            odoo_text = f"{odoo['opportunity_name']} {odoo['company_name']}"
+            pairs.append([apn_text, odoo_text])
+        
+        # Get cross-encoder scores
+        try:
+            cross_scores = self.cross_encoder.predict(pairs)
+            cross_scores = np.array(cross_scores)
+            
+            # Debug: Print cross-encoder scores for first few opportunities
+            if len(cross_scores) > 0:
+                print(f"      🔍 Cross-encoder scores: {cross_scores[:3]}")  # Print first 3 scores
+            
+            # Rerank based on cross-encoder scores
+            reranked_order = np.argsort(cross_scores)[::-1]  # Descending order
+            reranked_indices = top_indices[reranked_order]
+            reranked_cross_scores = cross_scores[reranked_order]
+            
+            return reranked_indices, reranked_cross_scores
+            
+        except Exception as e:
+            print(f"   ⚠️  Cross-encoder error: {e}")
+            return top_indices, np.zeros(len(top_indices))
         
     async def get_all_apn_opportunities(self) -> List[Dict]:
         """Get all APN opportunities with embeddings for matching"""
@@ -274,8 +331,19 @@ class CSVPlusMatchingEngine:
                             0.3 * identity_similarities + 
                             0.3 * fuzzy_scores)
             
-            # Get top 5 matches (same as original CSV)
-            top_indices = np.argsort(overall_scores)[-5:][::-1]
+            # Stage 1: Get top candidates (20 for cross-encoder, 5 for CSV+ only)
+            num_candidates = 20 if self.use_cross_encoder else 5
+            top_indices = np.argsort(overall_scores)[-num_candidates:][::-1]
+            
+            # Stage 2: Cross-encoder reranking (optional)
+            cross_encoder_scores = np.zeros(len(top_indices))
+            if self.use_cross_encoder:
+                top_indices, cross_encoder_scores = self._cross_encoder_rerank(
+                    apn_opp, odoo_data, top_indices, overall_scores[top_indices]
+                )
+                # Take top 5 from reranked results
+                top_indices = top_indices[:5]
+                cross_encoder_scores = cross_encoder_scores[:5]
             
             # Build match candidates in format expected by store function
             for rank, odoo_idx in enumerate(top_indices, 1):
@@ -301,10 +369,14 @@ class CSVPlusMatchingEngine:
                         # APN details (primary/query) - fields that exist in DB
                         'apn_company_name': apn_opp['company_name'] or '',
                         'apn_opportunity_name': apn_opp['opportunity_name'] or '',
+                        'apn_stage': apn_opp.get('stage_name', ''),
+                        'apn_salesperson': apn_opp.get('salesperson_name', ''),
                         
                         # Odoo details (secondary/target) - fields that exist in DB 
                         'odoo_company_name': odoo['company_name'] or '',
                         'odoo_opportunity_name': odoo['opportunity_name'] or '',
+                        'odoo_stage': odoo.get('stage_name', ''),
+                        'odoo_salesperson': odoo.get('salesperson_name', ''),
                         'odoo_partner_name': odoo['company_name'] or '',  # For match_store compatibility
                         
                         # Scoring fields that exist in DB schema
@@ -313,10 +385,21 @@ class CSVPlusMatchingEngine:
                         'context_similarity_score': float(context_similarities[odoo_idx]),
                         'semantic_score': float(identity_similarities[odoo_idx]),
                         'company_fuzzy_score': float(fuzzy_scores[odoo_idx]),
+                        'cross_encoder_score': float(cross_encoder_scores[rank-1]) if self.use_cross_encoder else 0.0,
+                        
+                        # Ranking fields (1-5 based on sorted position)
+                        'semantic_rank': rank,  # Overall rank is the semantic rank
+                        'company_fuzzy_rank': rank,  # Same rank for CSV+ approach
+                        'context_similarity_rank': rank,  # Same rank for CSV+ approach
+                        'domain_exact_rank': rank,  # Same rank for CSV+ approach
+                        'domain_exact_match': False,  # Not implemented in CSV+ algorithm
                         
                         # Method and explanation
                         'primary_match_method': 'semantic_company_weighted',
-                        'match_explanation': f"Semantic+Company Weighted: {overall_scores[odoo_idx]:.3f} (context:{context_similarities[odoo_idx]:.3f} + identity:{identity_similarities[odoo_idx]:.3f} + company_fuzzy:{fuzzy_scores[odoo_idx]:.3f})"
+                        'contributing_methods': ['context_similarity', 'identity_similarity', 'company_fuzzy_match'],
+                        'match_explanation': f"Semantic+Company Weighted: {overall_scores[odoo_idx]:.3f} (context:{context_similarities[odoo_idx]:.3f} + identity:{identity_similarities[odoo_idx]:.3f} + company_fuzzy:{fuzzy_scores[odoo_idx]:.3f})",
+                        'processing_time_ms': int((time.time() - opp_start_time) * 1000),
+                        'batch_id': None,  # Set at store time
                     }
                     
                     matches.append(match)
@@ -335,8 +418,16 @@ class CSVPlusMatchingEngine:
     async def run_csv_plus_matching(self) -> Dict[str, Any]:
         """Run CSV+ hybrid matching on all APN opportunities"""
         
-        print("🎯 CSV+ Hybrid Opportunity Matching Engine")
+        mode = "with Cross-Encoder Reranking" if self.use_cross_encoder else ""
+        print(f"🎯 CSV+ Hybrid Opportunity Matching Engine {mode}")
         print("=" * 80)
+        
+        if self.use_cross_encoder:
+            print("   🤖 Enhanced Mode: Two-Stage Retrieval + Cross-Encoder Reranking")
+            print("   📊 Stage 1: CSV+ algorithm (top 20 candidates)")  
+            print("   🎯 Stage 2: Cross-encoder reranking (final top 5)")
+        else:
+            print("   ⚡ Fast Mode: CSV+ algorithm only (direct top 5)")
         print(f"🔗 Batch ID: {self.batch_id}")
         print(f"🕐 Started at: {datetime.utcnow().isoformat()}Z")
         print("📊 Algorithm: 40% context + 30% identity + 30% enhanced fuzzy")
@@ -452,7 +543,11 @@ class CSVPlusMatchingEngine:
     async def save_intermediate_progress(self, recent_results: List[Dict]):
         """Save intermediate progress to avoid data loss"""
         try:
-            progress_file = project_root / f"matching_progress_{self.batch_id}.json"
+            # Ensure reports directory exists
+            reports_dir = project_root / "data" / "reports" / "matching"
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            
+            progress_file = reports_dir / f"matching_progress_{self.batch_id}.json"
             with open(progress_file, 'w') as f:
                 json.dump({
                     'batch_id': self.batch_id,
@@ -511,7 +606,11 @@ class CSVPlusMatchingEngine:
         }
         
         # Save main report
-        report_file = project_root / f"production_matching_report_{self.batch_id}.json"
+        # Ensure reports directory exists
+        reports_dir = project_root / "data" / "reports" / "matching"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        
+        report_file = reports_dir / f"production_matching_report_{self.batch_id}.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2, default=str)
         
@@ -542,6 +641,12 @@ class CSVPlusMatchingEngine:
 async def main():
     """Main execution function"""
     
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='CSV+ Hybrid Opportunity Matching with optional Cross-Encoder reranking')
+    parser.add_argument('--use-cross-encoder', action='store_true', 
+                        help='Enable cross-encoder reranking for enhanced match quality (requires sentence-transformers)')
+    args = parser.parse_args()
+    
     # Verify environment
     required_vars = ['LOCAL_DB_HOST', 'LOCAL_DB_NAME', 'LOCAL_DB_USER', 'LOCAL_DB_PASSWORD']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
@@ -553,7 +658,7 @@ async def main():
         return False
     
     # Initialize and run CSV+ hybrid matching
-    engine = CSVPlusMatchingEngine()
+    engine = CSVPlusMatchingEngine(use_cross_encoder=args.use_cross_encoder)
     
     try:
         result = await engine.run_csv_plus_matching()
@@ -585,9 +690,15 @@ if __name__ == "__main__":
     print("=" * 80)
     print("🎯 RevOps CSV+ Hybrid Opportunity Matching")
     print("CSV+ Algorithm: Proven CSV scoring + Enhanced fuzzy matching")
+    print("Optional: Cross-encoder reranking with --use-cross-encoder flag")
     print("  1. setup.sh ✅")
     print("  2. 19_generate_all_embeddings.sh ✅") 
     print("  3. 20_initial_opportunity_matching.py (CSV+ HYBRID) ← YOU ARE HERE")
+    print("=" * 80)
+    print()
+    print("Usage:")
+    print("  python 20_initial_opportunity_matching.py                    # Fast: CSV+ only")
+    print("  python 20_initial_opportunity_matching.py --use-cross-encoder # Enhanced: CSV+ + Cross-encoder")
     print("=" * 80)
     
     success = asyncio.run(main())

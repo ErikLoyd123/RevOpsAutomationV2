@@ -12,6 +12,7 @@ psycopg2-binary==2.9.9
 numpy==1.24.4
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.25.0
+sentence-transformers==5.1.0  # For cross-encoder reranking enhancement
 
 # HTTP client for BGE service
 httpx==0.25.2
