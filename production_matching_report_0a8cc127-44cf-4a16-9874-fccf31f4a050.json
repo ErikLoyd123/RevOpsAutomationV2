@@ -1,0 +1,41 @@
+{
+  "batch_summary": {
+    "batch_id": "0a8cc127-44cf-4a16-9874-fccf31f4a050",
+    "total_opportunities_processed": 3,
+    "total_matches_stored": 30,
+    "processing_time_minutes": 0.06677302122116088,
+    "average_processing_time_ms": 175.66666666666666,
+    "completed_at": "2025-08-24T01:57:16.415544"
+  },
+  "confidence_distribution": {
+    "high_confidence": 1,
+    "medium_confidence": 9,
+    "low_confidence": 20,
+    "no_matches": 0,
+    "processing_errors": 0
+  },
+  "validation_candidates": {
+    "high_confidence_matches_count": 1,
+    "sample_high_confidence": [
+      {
+        "opportunity_id": "O1027506",
+        "source_system": "apn",
+        "matches_found": 10,
+        "matches_stored": 10,
+        "processing_time_ms": 178,
+        "error": null,
+        "confidence_breakdown": {
+          "high": 1,
+          "medium": 0,
+          "low": 9
+        }
+      }
+    ]
+  },
+  "issues_for_review": {
+    "unmatched_opportunities_count": 0,
+    "error_opportunities_count": 0,
+    "sample_unmatched": [],
+    "sample_errors": []
+  }
+}

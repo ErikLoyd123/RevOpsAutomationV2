@@ -1,0 +1,1321 @@
+{
+  "batch_id": "a28fd368-9bd6-4569-a2ad-f059d86dacac",
+  "current_stats": {
+    "total_opportunities": 4745,
+    "processed_opportunities": 500,
+    "total_matches_stored": 0,
+    "high_confidence_matches": 472,
+    "medium_confidence_matches": 901,
+    "low_confidence_matches": 1127,
+    "opportunities_with_no_matches": 0,
+    "processing_errors": 500,
+    "average_processing_time_ms": 0,
+    "confidence_distribution": {},
+    "method_distribution": {},
+    "batch_id": "a28fd368-9bd6-4569-a2ad-f059d86dacac",
+    "started_at": "2025-08-24T15:11:05.652385"
+  },
+  "recent_results": [
+    {
+      "opportunity_id": "O2266902",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 152,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O619612",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 151,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O634129",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 156,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O6649587",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 166,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O7161586",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 140,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O7160199",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O624603",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 162,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O6828470",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 193,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O4028260",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 170,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O8452320",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 173,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1809515",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1808968",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2274290",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 155,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1075376",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 179,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2248998",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 146,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O1816262",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 145,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 1,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O6822907",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2417670",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 178,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O704239",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 144,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1308793",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O6822417",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O5566673",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 169,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O3039519",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 149,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O909443",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 174,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O7354136",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 147,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3972593",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 190,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O3147978",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 151,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O873556",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 153,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O5926970",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 179,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O467761",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 147,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O8274302",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 156,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O6828561",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O4727948",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 150,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O3335582",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 165,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O6809826",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 157,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O6845069",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 151,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 2,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O4237421",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 192,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 0,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O893453",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 211,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2011090",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 152,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1286533",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 147,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O1602154",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 150,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O3022222",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 206,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 2,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1289432",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 177,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1065981",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 169,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O929373",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 144,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O7618467",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 149,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O6896898",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 179,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O1902894",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 143,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O6358897",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 152,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O8001009",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 141,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O611643",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 159,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3194800",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3223822",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 160,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2267002",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 193,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O7827422",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 146,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O859947",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 163,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O751121",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 155,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1791034",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 162,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O1197787",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 155,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O759433",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1395258",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 163,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O5565434",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 156,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O419995",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 153,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O468261",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 181,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1053715",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 186,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O4454077",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 143,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O612796",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 166,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1692605",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 151,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 2,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1494903",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 149,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 3,
+        "medium": 1,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O3334713",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 143,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O1051303",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 166,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2484632",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 148,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O7161068",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 139,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O611721",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 161,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O622226",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 162,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O611666",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 166,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O625809",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 152,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O622572",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 172,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O7236339",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 174,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O6358000",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 162,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1506308",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 172,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O4478582",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 148,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1940439",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 179,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1965565",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 179,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2030584",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 176,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O849730",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 145,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O7827432",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 145,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O4962992",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 157,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O7038887",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 149,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2350799",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 169,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1219867",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 142,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O1599546",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 161,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 1,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O1118614",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 154,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2439566",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 154,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O1266602",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 171,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O448208",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 152,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O478183",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 150,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O569822",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2399246",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 149,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2411113",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 143,
+      "error": "Storage error: name 'i' is not defined",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    }
+  ],
+  "saved_at": "2025-08-24T15:13:04.014179"
+}

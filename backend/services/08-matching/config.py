@@ -37,7 +37,7 @@ class RRFConfig:
 @dataclass  
 class SemanticSimilarityConfig:
     """Configuration for Method 1: Semantic similarity using BGE embeddings"""
-    min_similarity_threshold: float = 0.65
+    min_similarity_threshold: float = 0.4  # Lowered for more matches
     max_candidates: int = 50
     embedding_type: str = "context"
     similarity_metric: str = "cosine"
@@ -48,7 +48,7 @@ class SemanticSimilarityConfig:
 @dataclass
 class CompanyFuzzyMatchConfig:
     """Configuration for Method 2: Company name fuzzy matching"""
-    min_fuzzy_score: float = 80.0         # Minimum fuzzywuzzy score (0-100)
+    min_fuzzy_score: float = 65.0         # Lowered minimum fuzzywuzzy score (0-100)
     max_candidates: int = 30
     use_partial_ratio: bool = True        # Use partial_ratio for substring matching
     use_token_sort_ratio: bool = True     # Use token_sort_ratio for word order
@@ -68,7 +68,7 @@ class DomainExactMatchConfig:
 @dataclass
 class BusinessContextConfig:
     """Configuration for Method 4: Business context similarity"""
-    min_context_similarity: float = 0.55
+    min_context_similarity: float = 0.35  # Lowered for more matches
     max_candidates: int = 40
     context_weight_description: float = 0.4   # Weight for opportunity description
     context_weight_next_activity: float = 0.3 # Weight for next activity
@@ -110,6 +110,11 @@ class MatchingEngineConfig:
     min_confidence_threshold: float = 0.7  # Minimum confidence for auto-match
     require_manual_review_threshold: float = 0.5  # Queue for manual review below this
     max_matches_per_opportunity: int = 5   # Maximum matches to return
+    confidence_thresholds: Dict[str, float] = field(default_factory=lambda: {
+        "high": 0.8,    # High confidence matches
+        "medium": 0.6,  # Medium confidence matches  
+        "low": 0.4      # Low confidence matches
+    })
     
     # Method-specific configurations
     rrf: RRFConfig = field(default_factory=RRFConfig)

@@ -370,8 +370,6 @@ class IdentityEmbeddingGenerator:
                     'company_domain': opp.get('partner_domain'),  # Map partner_domain to company_domain
                     'opportunity_name': opp.get('name'),
                     'opportunity_stage': opp.get('stage'),
-                    'opportunity_value': opp.get('expected_revenue'),  # Map expected_revenue to opportunity_value
-                    'opportunity_currency': opp.get('currency', 'USD'),
                     'salesperson_name': opp.get('salesperson_name'),
                     'partner_name': opp.get('partner_name'),
                     'embedding_quality_score': 1.0  # Mock quality score for simulated embeddings
@@ -411,8 +409,6 @@ class IdentityEmbeddingGenerator:
                         company_domain,
                         opportunity_name,
                         opportunity_stage,
-                        opportunity_value,
-                        opportunity_currency,
                         salesperson_name,
                         partner_name,
                         embedding_quality_score,
@@ -429,8 +425,6 @@ class IdentityEmbeddingGenerator:
                         company_domain = EXCLUDED.company_domain,
                         opportunity_name = EXCLUDED.opportunity_name,
                         opportunity_stage = EXCLUDED.opportunity_stage,
-                        opportunity_value = EXCLUDED.opportunity_value,
-                        opportunity_currency = EXCLUDED.opportunity_currency,
                         salesperson_name = EXCLUDED.salesperson_name,
                         partner_name = EXCLUDED.partner_name,
                         embedding_quality_score = EXCLUDED.embedding_quality_score,
@@ -451,8 +445,6 @@ class IdentityEmbeddingGenerator:
                         result.get('company_domain'),
                         result.get('opportunity_name'),
                         result.get('opportunity_stage'),
-                        result.get('opportunity_value'),
-                        result.get('opportunity_currency', 'USD'),
                         result.get('salesperson_name'),
                         result.get('partner_name'),
                         result.get('embedding_quality_score'),

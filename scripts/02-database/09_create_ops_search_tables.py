@@ -62,6 +62,16 @@ OPS_TABLES = {
         'description': 'Billing data normalization job tracking',
         'purpose': 'Track AWS billing data processing and normalization workflows',
         'key_fields': ['job_id', 'job_type', 'status', 'sync_batch_id', 'started_at', 'completed_at']
+    },
+    'opportunity_matches': {
+        'description': 'Match results storage with RRF scoring and workflow management',
+        'purpose': 'Store Two-Stage Retrieval match results with audit trail and decision workflow',
+        'key_fields': ['match_id', 'odoo_opportunity_id', 'apn_opportunity_id', 'rrf_combined_score', 'status']
+    },
+    'opportunity_match_decisions': {
+        'description': 'Audit trail for match decisions and status changes',
+        'purpose': 'Track match approval/rejection decisions with full audit history',
+        'key_fields': ['decision_id', 'opportunity_match_id', 'previous_status', 'new_status', 'decided_by']
     }
 }
 
@@ -386,6 +396,143 @@ def create_normalization_jobs_table(cursor):
     cursor.execute(sql_statement)
     return "ops.normalization_jobs"
 
+def create_opportunity_matches_table(cursor):
+    """Create the ops.opportunity_matches table for Task 4.3: Match Results Storage."""
+    sql_statement = """
+    CREATE TABLE IF NOT EXISTS ops.opportunity_matches (
+        -- Primary key
+        match_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        
+        -- APN fields first (primary entity for POD workflow)
+        apn_opportunity_id VARCHAR(50),
+        apn_company_name VARCHAR(500),
+        apn_opportunity_name VARCHAR(500),
+        apn_stage VARCHAR(100),
+        apn_salesperson VARCHAR(200),
+        
+        -- Odoo fields second (matched entity)  
+        odoo_opportunity_id VARCHAR(50) NOT NULL,
+        odoo_company_name VARCHAR(500),
+        odoo_opportunity_name VARCHAR(500),
+        odoo_stage VARCHAR(100),
+        odoo_salesperson VARCHAR(200),
+        
+        -- Core scoring fields
+        rrf_combined_score DECIMAL(8,6) NOT NULL, -- Combined RRF score across all methods
+        similarity_score DECIMAL(5,4) NOT NULL,   -- Legacy compatibility field
+        match_confidence VARCHAR(50) NOT NULL,    -- 'high', 'medium', 'low' based on RRF score
+        match_rank INTEGER,                        -- 1-5 ranking within each APN opportunity
+        
+        -- Method-Specific Scores  
+        semantic_score DECIMAL(5,4),           -- BGE semantic similarity score
+        company_fuzzy_score DECIMAL(5,4),      -- FuzzyWuzzy company name matching score
+        domain_exact_match BOOLEAN,            -- Boolean: exact domain match found
+        context_similarity_score DECIMAL(5,4), -- BGE context similarity score
+        
+        -- Method Rankings (for RRF calculation)
+        semantic_rank INTEGER,                 -- Rank in semantic similarity results
+        company_fuzzy_rank INTEGER,            -- Rank in company fuzzy matching results
+        domain_exact_rank INTEGER,             -- Rank in domain matching results (1 if exact, NULL if no match)
+        context_similarity_rank INTEGER,       -- Rank in context similarity results
+        
+        -- Match Attribution
+        primary_match_method VARCHAR(100) NOT NULL, -- 'semantic_company_weighted', 'rrf_fusion', etc.
+        contributing_methods TEXT[],           -- Array of methods that contributed to the match
+        match_explanation TEXT,               -- Human-readable explanation of match reasoning
+        processing_time_ms INTEGER,
+        batch_id UUID,
+        
+        -- Workflow Status
+        status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'confirmed', 'rejected'
+        reviewed_by VARCHAR(255),
+        reviewed_at TIMESTAMP,
+        
+        -- Timestamps
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        -- Ensure no duplicate matches for same opportunity pair
+        UNIQUE(odoo_opportunity_id, apn_opportunity_id)
+    );
+    
+    -- Add indexes for performance
+    CREATE INDEX idx_opportunity_matches_odoo ON ops.opportunity_matches(odoo_opportunity_id);
+    CREATE INDEX idx_opportunity_matches_apn ON ops.opportunity_matches(apn_opportunity_id);
+    CREATE INDEX idx_opportunity_matches_status ON ops.opportunity_matches(status);
+    CREATE INDEX idx_opportunity_matches_confidence ON ops.opportunity_matches(match_confidence);
+    CREATE INDEX idx_opportunity_matches_score ON ops.opportunity_matches(rrf_combined_score DESC);
+    CREATE INDEX idx_opportunity_matches_created ON ops.opportunity_matches(created_at DESC);
+    CREATE INDEX idx_opportunity_matches_batch ON ops.opportunity_matches(batch_id);
+    
+    -- Add comments for documentation
+    COMMENT ON TABLE ops.opportunity_matches IS 'Two-Stage Retrieval match results with RRF scoring and workflow management for Task 4.3';
+    COMMENT ON COLUMN ops.opportunity_matches.rrf_combined_score IS 'Reciprocal Rank Fusion combined score across all matching methods';
+    COMMENT ON COLUMN ops.opportunity_matches.primary_match_method IS 'Primary method that generated this match (rrf_fusion, semantic, etc.)';
+    COMMENT ON COLUMN ops.opportunity_matches.contributing_methods IS 'Array of all methods that contributed to match ranking';
+    """
+    
+    cursor.execute(sql_statement)
+    
+    # Create updated_at trigger
+    cursor.execute("""
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+    
+    CREATE TRIGGER update_opportunity_matches_updated_at 
+        BEFORE UPDATE ON ops.opportunity_matches 
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    """)
+    
+    return "ops.opportunity_matches"
+
+def create_opportunity_match_decisions_table(cursor):
+    """Create the ops.opportunity_match_decisions table for audit trail."""
+    sql_statement = """
+    CREATE TABLE IF NOT EXISTS ops.opportunity_match_decisions (
+        -- Primary key and identifiers
+        decision_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        opportunity_match_id UUID NOT NULL,
+        previous_status VARCHAR(50),
+        new_status VARCHAR(50) NOT NULL,
+        
+        -- Decision details
+        decision_reason TEXT,
+        decided_by VARCHAR(255) NOT NULL,
+        decided_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        additional_context JSONB,
+        
+        -- Business context
+        confidence_change DECIMAL(5,4),       -- Change in confidence score if applicable
+        method_override VARCHAR(100),         -- If decision overrode system recommendation
+        business_justification TEXT,          -- Business reason for decision
+        
+        -- Metadata
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        decision_source VARCHAR(100) DEFAULT 'manual', -- 'manual', 'automated', 'api'
+        
+        FOREIGN KEY (opportunity_match_id) REFERENCES ops.opportunity_matches(match_id) ON DELETE CASCADE
+    );
+    
+    -- Add indexes for audit queries
+    CREATE INDEX idx_match_decisions_match_id ON ops.opportunity_match_decisions(opportunity_match_id);
+    CREATE INDEX idx_match_decisions_decided_at ON ops.opportunity_match_decisions(decided_at DESC);
+    CREATE INDEX idx_match_decisions_decided_by ON ops.opportunity_match_decisions(decided_by);
+    CREATE INDEX idx_match_decisions_status_change ON ops.opportunity_match_decisions(previous_status, new_status);
+    
+    -- Add comments for documentation
+    COMMENT ON TABLE ops.opportunity_match_decisions IS 'Audit trail for opportunity match decisions and status changes';
+    COMMENT ON COLUMN ops.opportunity_match_decisions.decision_source IS 'Source of decision: manual, automated, or api';
+    COMMENT ON COLUMN ops.opportunity_match_decisions.business_justification IS 'Business reason for accepting/rejecting match';
+    """
+    
+    cursor.execute(sql_statement)
+    return "ops.opportunity_match_decisions"
+
 def create_embeddings_opportunities_table(cursor, pgvector_available=False):
     """Create the search.embeddings_opportunities table for BGE vector embeddings."""
     
@@ -412,11 +559,7 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
         identity_hash VARCHAR(64),
         context_hash VARCHAR(64),"""
     
-    # Vector metadata section
-    vector_sql = """
-        
-        -- Vector Metadata
-        vector_norm NUMERIC(10,6),  -- For vector magnitude calculations"""
+    # Vector metadata section removed - vector_norm was unused
     
     # Rest of table structure with broken-out metadata fields
     rest_sql = f"""
@@ -425,8 +568,6 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
         company_domain VARCHAR(255),
         opportunity_name VARCHAR(500),
         opportunity_stage VARCHAR(100),
-        opportunity_value NUMERIC(15,2),
-        opportunity_currency VARCHAR(10),
         salesperson_name VARCHAR(255),
         partner_name VARCHAR(255),
         
@@ -441,8 +582,8 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
         updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
     );"""
     
-    # Combine SQL
-    sql_statement = base_sql + vector_sql + rest_sql
+    # Combine SQL (vector_sql removed)
+    sql_statement = base_sql + rest_sql
     cursor.execute(sql_statement)
     
     # Create indexes - vector indexes only if pgvector is available
@@ -498,7 +639,6 @@ def create_embeddings_opportunities_table(cursor, pgvector_available=False):
     cursor.execute("""
     COMMENT ON COLUMN search.embeddings_opportunities.text_hash IS 'SHA-256 hash of text content for deduplication';
     COMMENT ON COLUMN search.embeddings_opportunities.embedding_type IS 'Type of text embedded: identity, context, description, etc.';
-    COMMENT ON COLUMN search.embeddings_opportunities.vector_norm IS 'L2 norm of the embedding vector for quality assessment';
     """)
     
     return "search.embeddings_opportunities"
@@ -686,7 +826,9 @@ def create_ops_search_tables():
         'sync_jobs': create_sync_jobs_table,
         'data_quality_checks': create_data_quality_checks_table,
         'transformation_log': create_transformation_log_table,
-        'normalization_jobs': create_normalization_jobs_table
+        'normalization_jobs': create_normalization_jobs_table,
+        'opportunity_matches': create_opportunity_matches_table,
+        'opportunity_match_decisions': create_opportunity_match_decisions_table
     }
     
     # Will be set based on pgvector availability

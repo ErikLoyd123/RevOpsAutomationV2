@@ -1,0 +1,1321 @@
+{
+  "batch_id": "61acc1f6-c68d-4c0d-a23d-cca744fe3801",
+  "current_stats": {
+    "total_opportunities": 4745,
+    "processed_opportunities": 600,
+    "total_matches_stored": 300,
+    "high_confidence_matches": 538,
+    "medium_confidence_matches": 1088,
+    "low_confidence_matches": 1374,
+    "opportunities_with_no_matches": 0,
+    "processing_errors": 540,
+    "average_processing_time_ms": 0,
+    "confidence_distribution": {},
+    "method_distribution": {},
+    "batch_id": "61acc1f6-c68d-4c0d-a23d-cca744fe3801",
+    "started_at": "2025-08-24T15:30:28.794018"
+  },
+  "recent_results": [
+    {
+      "opportunity_id": "O2297524",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 172,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36863, O2297524) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O7354813",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(44999, O7354813) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O7711667",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 147,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(44767, O7711667) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O7398607",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 156,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36774, O7398607) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O7354805",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 180,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(28985, O7354805) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1877762",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 163,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(34067, O1877762) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O5167744",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 156,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(43415, O5167744) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3385024",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 166,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(38989, O3385024) already exists.",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O3385106",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 170,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(38989, O3385106) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O537833",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 182,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(27575, O537833) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O7615935",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 172,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36774, O7615935) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O526546",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 159,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(27549, O526546) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1251345",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 161,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31902, O1251345) already exists.",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O8094065",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 159,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(44544, O8094065) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O770063",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 155,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(28096, O770063) already exists.",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O4989044",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 171,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(43409, O4989044) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O1817387",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(34037, O1817387) already exists.",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 0,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O3431839",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 152,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(39322, O3431839) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O1208645",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31452, O1208645) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1962179",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 167,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(34927, O1962179) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O6902503",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 155,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36017, O6902503) already exists.",
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2417339",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 158,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36906, O2417339) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O4837269",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 159,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(39448, O4837269) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1374197",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 178,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31632, O1374197) already exists.",
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O3900264",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 178,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(40606, O3900264) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2211670",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 156,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31461, O2211670) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O992416",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 139,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31200, O992416) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2231163",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 154,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36020, O2231163) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2405093",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 151,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(36020, O2405093) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O4121528",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 176,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(39484, O4121528) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O4342194",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 163,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(41428, O4342194) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O6793976",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 157,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(44466, O6793976) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O5093081",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 150,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(43343, O5093081) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1200480",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 153,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(32096, O1200480) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O5093044",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 153,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(42058, O5093044) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2477392",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 143,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(37512, O2477392) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1469126",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 144,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(32600, O1469126) already exists.",
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O1949634",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 139,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31943, O1949634) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1051341",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 154,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31473, O1051341) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1437899",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 0,
+      "processing_time_ms": 178,
+      "error": "Storage error: duplicate key value violates unique constraint \"opportunity_matches_odoo_opportunity_id_apn_opportunity_id_key\"\nDETAIL:  Key (odoo_opportunity_id, apn_opportunity_id)=(31632, O1437899) already exists.",
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1047181",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 0,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O7383881",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 165,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O8157873",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O1717263",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 152,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O4216511",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 149,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1266548",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 144,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2258111",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2307038",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 168,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3452960",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 201,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1282832",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 183,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2000941",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 196,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O4156637",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2430493",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 159,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O755532",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 177,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O353638",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 176,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 1,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O353520",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O7354798",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 199,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O891473",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 163,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1940106",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2163011",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O1313576",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 176,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2222468",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 171,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O6478576",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 177,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O6963395",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 174,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1449608",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 194,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1717673",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 168,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 2,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O4933856",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 168,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O547601",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 157,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O4019306",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 197,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1817405",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 0,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O4111100",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 175,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O5906886",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 144,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1922206",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 142,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O5842015",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O4448136",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 152,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2073112",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O781198",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 173,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O1797529",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 204,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O1082828",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 182,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O1082833",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 180,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O508100",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 176,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O1213947",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 162,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O1882111",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 168,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O519803",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 3,
+        "medium": 1,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O3148001",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 162,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3334714",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 183,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O830852",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O4989363",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 146,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O830823",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 153,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O4592002",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 157,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2368968",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 149,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O511167",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 182,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O3335537",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 183,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2970357",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 159,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O3688141",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 158,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O990562",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 177,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O5127032",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O5127289",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 154,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O4256103",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O5362958",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 185,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    }
+  ],
+  "saved_at": "2025-08-24T15:32:51.400249"
+}

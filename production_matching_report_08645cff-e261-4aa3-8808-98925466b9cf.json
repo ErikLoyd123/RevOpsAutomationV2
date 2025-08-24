@@ -1,0 +1,67 @@
+{
+  "batch_summary": {
+    "batch_id": "08645cff-e261-4aa3-8808-98925466b9cf",
+    "total_opportunities_processed": 5,
+    "total_matches_stored": 50,
+    "processing_time_minutes": 0.07300640344619751,
+    "average_processing_time_ms": 171.4,
+    "completed_at": "2025-08-24T14:06:48.423113"
+  },
+  "confidence_distribution": {
+    "high_confidence": 4,
+    "medium_confidence": 12,
+    "low_confidence": 34,
+    "no_matches": 0,
+    "processing_errors": 0
+  },
+  "validation_candidates": {
+    "high_confidence_matches_count": 3,
+    "sample_high_confidence": [
+      {
+        "opportunity_id": "O1025516",
+        "source_system": "apn",
+        "matches_found": 10,
+        "matches_stored": 10,
+        "processing_time_ms": 161,
+        "error": null,
+        "confidence_breakdown": {
+          "high": 1,
+          "medium": 2,
+          "low": 7
+        }
+      },
+      {
+        "opportunity_id": "O1027506",
+        "source_system": "apn",
+        "matches_found": 10,
+        "matches_stored": 10,
+        "processing_time_ms": 150,
+        "error": null,
+        "confidence_breakdown": {
+          "high": 1,
+          "medium": 0,
+          "low": 9
+        }
+      },
+      {
+        "opportunity_id": "O6600401",
+        "source_system": "apn",
+        "matches_found": 10,
+        "matches_stored": 10,
+        "processing_time_ms": 182,
+        "error": null,
+        "confidence_breakdown": {
+          "high": 2,
+          "medium": 0,
+          "low": 8
+        }
+      }
+    ]
+  },
+  "issues_for_review": {
+    "unmatched_opportunities_count": 0,
+    "error_opportunities_count": 0,
+    "sample_unmatched": [],
+    "sample_errors": []
+  }
+}

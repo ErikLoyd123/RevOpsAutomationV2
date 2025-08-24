@@ -159,23 +159,27 @@ class EnhancedMatchingEngine:
     
     async def _get_opportunity_data(self, opportunity_id: int) -> Optional[Dict[str, Any]]:
         """Get opportunity data from database"""
-        async with await self._get_db_connection() as conn:
+        conn = await self._get_db_connection()
+        try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            await cursor.execute("""
+            cursor.execute("""
                 SELECT opportunity_id, source_system, source_id, company_name, 
                        company_domain, identity_text, context_text
                 FROM core.opportunities 
                 WHERE opportunity_id = %s
             """, (opportunity_id,))
             
-            result = await cursor.fetchone()
+            result = cursor.fetchone()
             return dict(result) if result else None
+        finally:
+            conn.close()
     
     async def _get_candidate_pool(self, target_system: str, limit: int) -> List[Dict[str, Any]]:
         """Get candidate opportunities from target system"""
-        async with await self._get_db_connection() as conn:
+        conn = await self._get_db_connection()
+        try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
-            await cursor.execute("""
+            cursor.execute("""
                 SELECT opportunity_id, source_system, source_id, company_name,
                        company_domain, identity_text, context_text
                 FROM core.opportunities 
@@ -186,8 +190,10 @@ class EnhancedMatchingEngine:
                 LIMIT %s
             """, (target_system, limit))
             
-            results = await cursor.fetchall()
+            results = cursor.fetchall()
             return [dict(row) for row in results]
+        finally:
+            conn.close()
     
     async def _apply_semantic_matching(self, query_opp: Dict, candidates: List[MatchCandidate]):
         """Method 1: Semantic similarity using BGE embeddings from context_text"""
@@ -346,35 +352,53 @@ class EnhancedMatchingEngine:
             k = self.rrf_config.k_value
             weights = self.rrf_config.method_weights
             
+            # Calculate raw RRF scores first
+            raw_rrf_scores = []
             for candidate in candidates:
-                # Calculate RRF score: sum of weighted 1/(k + rank) for each method
-                rrf_score = 0.0
+                # Calculate raw RRF score: sum of weighted 1/(k + rank) for each method
+                raw_rrf_score = 0.0
                 contributing_methods = []
                 
                 # Method 1: Semantic similarity
                 if candidate.semantic_rank > 0:
-                    rrf_score += weights["semantic_similarity"] * (1.0 / (k + candidate.semantic_rank))
+                    raw_rrf_score += weights["semantic_similarity"] * (1.0 / (k + candidate.semantic_rank))
                     contributing_methods.append("semantic")
                 
                 # Method 2: Company fuzzy matching
                 if candidate.fuzzy_rank > 0:
-                    rrf_score += weights["company_fuzzy_match"] * (1.0 / (k + candidate.fuzzy_rank))
+                    raw_rrf_score += weights["company_fuzzy_match"] * (1.0 / (k + candidate.fuzzy_rank))
                     contributing_methods.append("fuzzy_company")
                 
                 # Method 3: Domain exact matching
                 if candidate.domain_rank > 0:
-                    rrf_score += weights["domain_exact_match"] * (1.0 / (k + candidate.domain_rank))
+                    raw_rrf_score += weights["domain_exact_match"] * (1.0 / (k + candidate.domain_rank))
                     contributing_methods.append("exact_domain")
                 
                 # Method 4: Business context similarity
                 if candidate.context_rank > 0:
-                    rrf_score += weights["business_context"] * (1.0 / (k + candidate.context_rank))
+                    raw_rrf_score += weights["business_context"] * (1.0 / (k + candidate.context_rank))
                     contributing_methods.append("business_context")
                 
-                candidate.rrf_score = rrf_score
                 candidate.contributing_methods = contributing_methods
+                raw_rrf_scores.append(raw_rrf_score)
             
-            # Sort by RRF score and assign final ranks
+            # Normalize RRF scores to 0-1 range for human readability
+            if raw_rrf_scores:
+                min_score = min(raw_rrf_scores)
+                max_score = max(raw_rrf_scores)
+                score_range = max_score - min_score
+                
+                for i, candidate in enumerate(candidates):
+                    if score_range > 0:
+                        # Normalize to 0-1 range: (score - min) / (max - min)
+                        normalized_score = (raw_rrf_scores[i] - min_score) / score_range
+                    else:
+                        # All scores are identical, assign 1.0 to all
+                        normalized_score = 1.0
+                    
+                    candidate.rrf_score = normalized_score
+            
+            # Sort by normalized RRF score and assign final ranks
             candidates.sort(key=lambda x: x.rrf_score, reverse=True)
             for rank, candidate in enumerate(candidates, 1):
                 candidate.final_rank = rank
@@ -382,7 +406,8 @@ class EnhancedMatchingEngine:
             logger.info("RRF fusion completed",
                        k_value=k,
                        total_candidates=len(candidates),
-                       top_score=candidates[0].rrf_score if candidates else 0.0)
+                       raw_score_range=f"{min(raw_rrf_scores):.6f}-{max(raw_rrf_scores):.6f}" if raw_rrf_scores else "0",
+                       top_normalized_score=candidates[0].rrf_score if candidates else 0.0)
             
             return candidates
             

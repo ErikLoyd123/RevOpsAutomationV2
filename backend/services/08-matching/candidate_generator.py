@@ -116,7 +116,7 @@ class TwoStageRetrieval:
     
     async def generate_candidates(
         self,
-        query_opportunity_id: int,
+        query_opportunity_id,  # Accept both int and str
         max_final_candidates: int = None
     ) -> Tuple[List[MatchCandidate], CandidateGenerationMetrics]:
         """
@@ -380,10 +380,10 @@ class TwoStageRetrieval:
                 where_conditions.append("created_at >= %s")
                 params.append(datetime.utcnow() - timedelta(days=criteria.date_range_days))
             
-            # Status filtering
+            # Status filtering (using opportunity_stage column)
             if criteria.exclude_status:
                 placeholders = ",".join(["%s"] * len(criteria.exclude_status))
-                where_conditions.append(f"COALESCE(status, '') NOT IN ({placeholders})")
+                where_conditions.append(f"COALESCE(opportunity_stage, '') NOT IN ({placeholders})")
                 params.extend(criteria.exclude_status)
             
             # Company name length
@@ -394,9 +394,9 @@ class TwoStageRetrieval:
             # Test data exclusion
             if criteria.exclude_test_data:
                 where_conditions.extend([
-                    "LOWER(COALESCE(company_name, '')) NOT LIKE '%test%'",
-                    "LOWER(COALESCE(company_name, '')) NOT LIKE '%demo%'",
-                    "LOWER(COALESCE(company_name, '')) NOT LIKE '%sample%'"
+                    "LOWER(COALESCE(company_name, '')) NOT LIKE '%%test%%'",
+                    "LOWER(COALESCE(company_name, '')) NOT LIKE '%%demo%%'",
+                    "LOWER(COALESCE(company_name, '')) NOT LIKE '%%sample%%'"
                 ])
             
             where_clause = " AND ".join(where_conditions)
@@ -419,9 +419,13 @@ class TwoStageRetrieval:
                 conn = await asyncpg.connect(self.db_url)
                 
                 # Convert %s placeholders to asyncpg format ($1, $2, etc.)
+                # Use regex to only replace standalone %s, not %s within strings
+                import re
                 asyncpg_query = query
-                for i in range(len(params)):
-                    asyncpg_query = asyncpg_query.replace('%s', f'${i+1}', 1)
+                param_index = 1
+                while re.search(r'(?<![%\w])%s(?![%\w])', asyncpg_query) and param_index <= len(params):
+                    asyncpg_query = re.sub(r'(?<![%\w])%s(?![%\w])', f'${param_index}', asyncpg_query, count=1)
+                    param_index += 1
                 
                 results = await conn.fetch(asyncpg_query, *params)
                 await conn.close()
@@ -596,11 +600,12 @@ class TwoStageRetrieval:
                 return
             
             # Store in ops.matching_sessions for analytics
-            async with await self._get_db_connection() as conn:
+            conn = await self._get_db_connection()
+            try:
                 cursor = conn.cursor()
                 
                 # Insert matching session record
-                await cursor.execute("""
+                cursor.execute("""
                     INSERT INTO ops.matching_sessions (
                         query_opportunity_id, target_system, method_type, 
                         total_execution_time_ms, stage_1_time_ms, stage_2_time_ms,
@@ -628,14 +633,16 @@ class TwoStageRetrieval:
                     datetime.utcnow()
                 ))
                 
-                await conn.commit()
+                conn.commit()
+            finally:
+                conn.close()
             
         except Exception as e:
             logger.error("Error storing matching results", error=str(e))
     
     # Utility methods
     
-    async def _get_opportunity_data(self, opportunity_id: int) -> Optional[Dict[str, Any]]:
+    async def _get_opportunity_data(self, opportunity_id) -> Optional[Dict[str, Any]]:
         """Get opportunity data with stored embeddings from database"""
         try:
             import asyncpg
@@ -720,7 +727,7 @@ class TwoStageRetrieval:
         except:
             return 0.0
     
-    def _generate_cache_key(self, opportunity_id: int, stage: str, target_system: str) -> str:
+    def _generate_cache_key(self, opportunity_id, stage: str, target_system: str) -> str:
         """Generate cache key for results"""
         key_parts = [
             "candidate_gen",

@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 LABEL maintainer="RevOps Platform"
-LABEL service="enhanced-matching-engine"
+LABEL service="fastapi-matching-service"
 LABEL version="1.0.0"
 
 # Set working directory
@@ -29,10 +29,10 @@ USER app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8008/health || exit 1
+    CMD curl -f http://localhost:8008/api/v1/health || exit 1
 
 # Expose port
 EXPOSE 8008
 
 # Run the application
-CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8008"]
+CMD ["python", "api.py"]

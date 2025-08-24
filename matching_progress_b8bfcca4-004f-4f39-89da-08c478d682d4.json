@@ -1,0 +1,1321 @@
+{
+  "batch_id": "b8bfcca4-004f-4f39-89da-08c478d682d4",
+  "current_stats": {
+    "total_opportunities": 4745,
+    "processed_opportunities": 1500,
+    "total_matches_stored": 7500,
+    "high_confidence_matches": 939,
+    "medium_confidence_matches": 2315,
+    "low_confidence_matches": 4246,
+    "opportunities_with_no_matches": 0,
+    "processing_errors": 0,
+    "average_processing_time_ms": 0,
+    "confidence_distribution": {},
+    "method_distribution": {},
+    "batch_id": "b8bfcca4-004f-4f39-89da-08c478d682d4",
+    "started_at": "2025-08-24T16:55:55.975669"
+  },
+  "recent_results": [
+    {
+      "opportunity_id": "O2231163",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 140,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2231214",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 162,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2234598",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 160,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2236046",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2236204",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 159,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2236253",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 156,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2243584",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 148,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2243753",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 149,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2243766",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 161,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2244552",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2245043",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2245052",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 146,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2248049",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 142,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 1,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2248105",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 163,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2248612",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 150,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 3,
+        "medium": 2,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2248998",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 144,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2251387",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2251444",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 157,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2252643",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 162,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 3,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2252795",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 142,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2252837",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2252928",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 142,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2258002",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 153,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2258071",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 171,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2258111",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 165,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2259076",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 144,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O226008",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 151,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O226009",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 157,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2266282",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2266902",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 166,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2267002",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 175,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2267350",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 178,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2267677",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 149,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2271434",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 164,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2271602",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 153,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2271752",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 151,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 1,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2274144",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 165,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2274290",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2276107",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 154,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2282005",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 153,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2282954",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 1,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2282963",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 2,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2283303",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 154,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2283304",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2291914",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2296751",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 186,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2297242",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 181,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2297245",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 173,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2297524",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 181,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2303012",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 154,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2307009",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2307038",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 170,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2310572",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 166,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2310946",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 3,
+        "low": 2
+      }
+    },
+    {
+      "opportunity_id": "O2315436",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 154,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 1,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2325431",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 178,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2325451",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 149,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2327467",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 157,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2327468",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 162,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2327469",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 172,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2330573",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 173,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2330631",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 154,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2331040",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2333199",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 219,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 2,
+        "medium": 3,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2342895",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 175,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2343662",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 189,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2343682",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2343698",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 176,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2343874",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 135,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2344216",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 1,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2344622",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 159,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2344639",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 185,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O234606",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 179,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2347597",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 161,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2350799",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 180,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2350957",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 167,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2351412",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 159,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2351818",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 151,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 0,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2357936",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 153,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2357998",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 152,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2360441",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 152,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2368400",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 163,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2368833",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 159,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 1,
+        "low": 4
+      }
+    },
+    {
+      "opportunity_id": "O2368968",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 156,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2369035",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 0,
+        "low": 5
+      }
+    },
+    {
+      "opportunity_id": "O2373035",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 4,
+        "low": 1
+      }
+    },
+    {
+      "opportunity_id": "O2373627",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 141,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2378050",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 145,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 2,
+        "low": 3
+      }
+    },
+    {
+      "opportunity_id": "O2378505",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 151,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2378527",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 156,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2378548",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 152,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2378566",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 152,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2378573",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 153,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 1,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381317",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 148,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 0,
+        "medium": 5,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381574",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 1,
+        "medium": 4,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381575",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 156,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 3,
+        "medium": 2,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381576",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 155,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 1,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381577",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 147,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381578",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 148,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 5,
+        "medium": 0,
+        "low": 0
+      }
+    },
+    {
+      "opportunity_id": "O2381579",
+      "source_system": "apn",
+      "matches_found": 5,
+      "matches_stored": 5,
+      "processing_time_ms": 176,
+      "error": null,
+      "confidence_breakdown": {
+        "high": 4,
+        "medium": 1,
+        "low": 0
+      }
+    }
+  ],
+  "saved_at": "2025-08-24T17:01:59.581313"
+}
